@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Vocabulary Raid v2</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { background:#1a1a1a; display:flex; align-items:center; justify-content:center; height:100vh; overflow:hidden; }
+canvas { display:block; }
+</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+
+const BASE = 'https://laboureaunathan-ops.github.io/vocabulary-raid-v2/';
+
+// Mapping tileset name → fichier PNG sur GitHub
+const TILESET_FILES = {
+  'Atlas_Buildings':         'Buildings.png',
+  'Atlas_Props':             'Props.png',
+  'Atlas_Rocks':             'Rocks.png',
+  'Atlas_Trees_Bushes':      'Trees_Bushes.png',
+  'Tileset_Ground':          'Tileset_Ground.png',
+  'Tileset_RockSlope':       'Tileset_RockSlope.png',
+  'Tileset_RockSlope_Simple':'Tileset_RockSlope_Simple.png',
+  'Tileset_Water':           'Tileset_Water.png',
+  'Tilesets_Road':           'Tileset_Road.png',
+  'Tileset_Shadow':          'Tileset_Shadow.png',
+};
+
+// Données TMX (firstgid + dimensions de chaque tileset)
+const TILESETS = [
+  { name:'Atlas_Buildings',          firstgid:1,    cols:18, tileW:16, tileH:16 },
+  { name:'Atlas_Props',              firstgid:518,  cols:18, tileW:16, tileH:16 },
+  { name:'Atlas_Rocks',              firstgid:698,  cols:11, tileW:16, tileH:16 },
+  { name:'Atlas_Trees_Bushes',       firstgid:5434, cols:24, tileW:16, tileH:16 },
+  { name:'Tileset_Ground',           firstgid:720,  cols:12, tileW:16, tileH:16 },
+  { name:'Tileset_RockSlope',        firstgid:888,  cols:64, tileW:16, tileH:16 },
+  { name:'Tileset_RockSlope_Simple', firstgid:4984, cols:6,  tileW:16, tileH:16 },
+  { name:'Tileset_Water',            firstgid:5038, cols:16, tileW:16, tileH:16 },
+  { name:'Tilesets_Road',            firstgid:5350, cols:6,  tileW:16, tileH:16 },
+  { name:'Tileset_Shadow',           firstgid:5802, cols:6,  tileW:16, tileH:16 },
+];
+
+// Tilesets ignorés (objets individuels ou animations — gérés séparément)
+const IGNORED_FIRSTGIDS = new Set([477, 483, 502, 507, 5578, 5674, 5770, 5850]);
+
+function getTilesetForGid(gid) {
+  let best = null;
+  for (const ts of TILESETS) {
+    if (ts.firstgid <= gid) {
+      if (!best || ts.firstgid > best.firstgid) best = ts;
+    }
+  }
+  return best;
+}
+
+function isIgnored(gid) {
+  for (const fg of IGNORED_FIRSTGIDS) {
+    // Trouver le prochain firstgid non ignoré
+    const next = [...TILESETS, ...Array.from(IGNORED_FIRSTGIDS).map(f=>({firstgid:f}))].map(t=>t.firstgid).filter(f=>f>fg).sort((a,b)=>a-b)[0] || 99999;
+    if (gid >= fg && gid < next) return true;
+  }
+  return false;
+}
+
+// ══════════════════════════════════════
+//  BOOT SCENE
+// ══════════════════════════════════════
+class BootScene extends Phaser.Scene {
+  constructor() { super('Boot'); }
+
+  preload() {
+    const W = this.scale.width, H = this.scale.height;
+    const bar = this.add.graphics();
+    bar.fillStyle(0x222233); bar.fillRect(W/2-160, H/2-15, 320, 30);
+    const prog = this.add.graphics();
+    this.add.text(W/2, H/2-40, 'Vocabulary Raid v2', {font:'16px monospace', fill:'#f0e0a0'}).setOrigin(0.5);
+    this.load.on('progress', v => {
+      prog.clear(); prog.fillStyle(0xc8a030);
+      prog.fillRect(W/2-158, H/2-13, 316*v, 26);
+    });
+    this.load.on('filecomplete', (key) => console.log('Loaded:', key));
+    this.load.on('loaderror', (file) => console.warn('Failed:', file.key, file.url));
+
+    // Charger tous les tilesets disponibles
+    for (const ts of TILESETS) {
+      if (TILESET_FILES[ts.name]) {
+        this.load.image(ts.name, BASE + TILESET_FILES[ts.name]);
+      }
+    }
+
+    // Charger le TMX
+    this.load.tilemapTiledJSON('map', BASE + 'Beginning%20Fields.tmx');
+  }
+
+  create() {
+    this.scene.start('WorldMap');
+  }
+}
+
+// ══════════════════════════════════════
+//  WORLDMAP SCENE
+// ══════════════════════════════════════
+class WorldMapScene extends Phaser.Scene {
+  constructor() { super('WorldMap'); }
+
+  create() {
+    const ZOOM = 3;
+
+    // Créer la tilemap depuis le TMX
+    const map = this.make.tilemap({ key: 'map' });
+
+    const tilesets = [];
+    for (const ts of TILESETS) {
+      if (this.textures.exists(ts.name)) {
+        try {
+          const t = map.addTilesetImage(ts.name, ts.name, ts.tileW, ts.tileH, 0, 0, ts.firstgid);
+          if (t) tilesets.push(t);
+        } catch(e) { console.warn('Tileset error:', ts.name, e); }
+      }
+    }
+
+    console.log('Tilesets loaded:', tilesets.map(t=>t.name));
+
+    // Créer les calques dans l'ordre
+    const layerNames = ['Ground', 'Road', 'RockSlopes', 'RockSlopes_Auto', 'Water', 'Flowers'];
+    const layers = [];
+    for (const name of layerNames) {
+      try {
+        const l = map.createLayer(name, tilesets, 0, 0);
+        if (l) { l.setDepth(layerNames.indexOf(name)); layers.push(l); }
+      } catch(e) { console.warn('Layer error:', name, e); }
+    }
+
+    // Collisions sur les calques qui ont des tiles solides
+    // Utiliser les propriétés de collision définies dans les TSX
+    const solidLayers = layers.filter(l => ['RockSlopes','RockSlopes_Auto','Water'].includes(l.layer.name));
+    for (const l of solidLayers) {
+      l.setCollisionByExclusion([-1]);
+    }
+
+    // ── Joueur ──
+    const spawnX = 20 * 16 * ZOOM;
+    const spawnY = 25 * 16 * ZOOM;
+
+    this._px = 20 * 16;
+    this._py = 25 * 16;
+    this._facing = 'down';
+    this._frame = 0;
+    this._frameT = 0;
+    this._moving = false;
+
+    this._gfx = this.add.graphics().setDepth(10);
+    this._shadow = this.add.graphics().setDepth(9);
+
+    // ── Caméra ──
+    const mapW = map.widthInPixels;
+    const mapH = map.heightInPixels;
+    this.cameras.main.setBounds(0, 0, mapW, mapH);
+    this.cameras.main.setZoom(ZOOM);
+    this.cameras.main.centerOn(this._px, this._py);
+
+    // ── Input ──
+    this._keys = this.input.keyboard.addKeys({
+      up:    [Phaser.Input.Keyboard.KeyCodes.UP,    Phaser.Input.Keyboard.KeyCodes.W, Phaser.Input.Keyboard.KeyCodes.Z],
+      down:  [Phaser.Input.Keyboard.KeyCodes.DOWN,  Phaser.Input.Keyboard.KeyCodes.S],
+      left:  [Phaser.Input.Keyboard.KeyCodes.LEFT,  Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.Q],
+      right: [Phaser.Input.Keyboard.KeyCodes.RIGHT, Phaser.Input.Keyboard.KeyCodes.D],
+    });
+
+    // ── Collision layers pour Phaser physics ──
+    // On utilise une grille manuelle (plus fiable)
+    this._solidLayers = solidLayers;
+    this._map = map;
+
+    // ── HUD ──
+    this._hud = this.add.text(8, 8, 'Vocabulary Raid v2', {
+      font:'8px monospace', fill:'#f0e0a0',
+      backgroundColor:'#00000088', padding:{x:4,y:3}
+    }).setScrollFactor(0).setDepth(100);
+
+    this.add.text(
+      this.scale.width/2, this.scale.height-12,
+      'FLÈCHES · WASD · ZQSD',
+      {font:'7px monospace', fill:'#667755'}
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(100);
+  }
+
+  _isDown(key) {
+    const k = this._keys[key];
+    return Array.isArray(k) ? k.some(x=>x.isDown) : k.isDown;
+  }
+
+  _isSolid(wx, wy) {
+    const T = 16;
+    for (const layer of this._solidLayers) {
+      const tile = this._map.getTileAtWorldXY(wx, wy, false, undefined, layer);
+      if (tile && tile.index !== -1) return true;
+    }
+    return false;
+  }
+
+  _drawPlayer() {
+    const g = this._gfx, s = this._shadow;
+    g.clear(); s.clear();
+    const x = Math.round(this._px), y = Math.round(this._py);
+    const p = 1, f = this._frame, mov = this._moving;
+    const ls = mov ? (f%2===0?p:-p) : 0;
+    const as = mov ? (f%2===0?-p:p) : 0;
+
+    s.fillStyle(0x000000, 0.3);
+    s.fillEllipse(x, y+9, 10, 4);
+
+    g.fillStyle(0x284890);
+    g.fillRect(x-4,y+4,3,7+ls); g.fillRect(x+1,y+4,3,7-ls);
+    g.fillStyle(0x281808);
+    g.fillRect(x-5,y+11+ls,4,2); g.fillRect(x+1,y+11-ls,4,2);
+    g.fillStyle(0x3858c0);
+    g.fillRect(x-5,y-3,10,7);
+    g.fillRect(x-8,y-1+as,3,6); g.fillRect(x+5,y-1-as,3,6);
+    g.fillStyle(0xf0b880);
+    g.fillRect(x-8,y+4+as,3,2); g.fillRect(x+5,y+4-as,3,2);
+    g.fillRect(x-2,y-6,4,4); g.fillRect(x-5,y-14,10,9);
+    g.fillStyle(0x4a2808); g.fillRect(x-5,y-14,10,3);
+    if (this._facing !== 'up') {
+      g.fillStyle(0x1a0808);
+      g.fillRect(x-3,y-10,2,2); g.fillRect(x+1,y-10,2,2);
+      g.fillStyle(0xffffff);
+      g.fillRect(x-3,y-10,1,1); g.fillRect(x+1,y-10,1,1);
+    }
+  }
+
+  update(time, delta) {
+    const SPEED = 60;
+    const dt = Math.min(delta, 50);
+    let dx=0, dy=0;
+
+    if (this._isDown('left'))  { dx=-1; this._facing='left'; }
+    if (this._isDown('right')) { dx= 1; this._facing='right'; }
+    if (this._isDown('up'))    { dy=-1; this._facing='up'; }
+    if (this._isDown('down'))  { dy= 1; this._facing='down'; }
+    if (dx&&dy) { dx*=0.707; dy*=0.707; }
+
+    const spd = SPEED*dt/1000;
+    const HIT = 5;
+    const nx = this._px+dx*spd;
+    const ny = this._py+dy*spd;
+    const mapW = this._map.widthInPixels;
+    const mapH = this._map.heightInPixels;
+
+    if (!this._isSolid(nx-HIT,this._py) && !this._isSolid(nx+HIT,this._py))
+      this._px = Phaser.Math.Clamp(nx, HIT, mapW-HIT);
+    if (!this._isSolid(this._px,ny-HIT) && !this._isSolid(this._px,ny+HIT))
+      this._py = Phaser.Math.Clamp(ny, HIT, mapH-HIT);
+
+    this._moving = (dx!==0||dy!==0);
+    if (this._moving) {
+      this._frameT+=dt;
+      if (this._frameT>160) { this._frame=(this._frame+1)%4; this._frameT=0; }
+    } else { this._frame=0; this._frameT=0; }
+
+    this.cameras.main.centerOn(this._px, this._py);
+    this._drawPlayer();
+
+    const T=16;
+    this._hud.setText(`Vocabulary Raid v2  [${Math.floor(this._px/T)},${Math.floor(this._py/T)}]`);
+  }
+}
+
+// ══════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════
+new Phaser.Game({
+  type: Phaser.AUTO,
+  width:  Math.min(window.innerWidth,  640),
+  height: Math.min(window.innerHeight, 640),
+  backgroundColor: '#2a3a1a',
+  pixelArt: true,
+  antialias: false,
+  parent: document.body,
+  scene: [BootScene, WorldMapScene],
+  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+});
+
+</script>
+</body>
+</html>
