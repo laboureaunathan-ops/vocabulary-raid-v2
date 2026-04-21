@@ -93,7 +93,7 @@ class BootScene extends Phaser.Scene {
     this.load.image('Tileset_Shadow',           BASE + 'Tileset_Shadow.png');
 
     // La carte au format TMX
-    this.load.tilemapTiledJSON('map', BASE + 'Beginning%20Fields.tmx');
+    this.load.tilemapTiledXML('map', BASE + 'Beginning%20Fields.tmx');
   }
 
   create() { this.scene.start('WorldMap'); }
