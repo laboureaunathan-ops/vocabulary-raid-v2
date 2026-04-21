@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Vocabulary Raid v2</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { background:#1a2a1a; display:flex; align-items:center; justify-content:center; height:100vh; overflow:hidden; }
+</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script>
+const BASE = "https://laboureaunathan-ops.github.io/vocabulary-raid-v2/";
+
+const COLLISION_GRID = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0],
+  [1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1],
+  [1,1,1,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,0,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,0,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1],
+  [1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1],
+  [1,1,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
+  [1,1,1,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
+  [1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,1,1],
+  [1,1,1,1,0,1,1,1,0,0,0,0,0,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,1],
+  [1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1],
+  [1,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
+  [1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1],
+  [1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1],
+  [1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1],
+  [1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1]
+];
+
+function isSolid(map, layers, wx, wy) {
+  for (const l of layers) {
+    const tile = map.getTileAtWorldXY(wx, wy, false, undefined, l);
+    if (tile && tile.index > 0) return true;
+  }
+  return false;
+}
+
+// ── BOOT ──
+class BootScene extends Phaser.Scene {
+  constructor() { super('Boot'); }
+
+  preload() {
+    const W = this.scale.width, H = this.scale.height;
+    const bg = this.add.rectangle(W/2, H/2, 320, 36, 0x111122);
+    const bar = this.add.rectangle(W/2-158, H/2, 4, 28, 0xc8a030).setOrigin(0, 0.5);
+    this.add.text(W/2, H/2-30, 'Vocabulary Raid v2', {font:'14px monospace', fill:'#f0e0a0'}).setOrigin(0.5);
+    const status = this.add.text(W/2, H/2+30, 'Chargement...', {font:'10px monospace', fill:'#88aa66'}).setOrigin(0.5);
+
+    this.load.on('progress', v => { bar.width = 316*v; });
+    this.load.on('filecomplete', key => { status.setText(key); });
+    this.load.on('loaderror', file => { console.error('ERREUR:', file.key, file.url); });
+
+    // Tilesets — noms correspondent exactement au champ "name" dans le TMJ
+    this.load.image('Atlas_Buildings',          BASE + 'Buildings.png');
+    this.load.image('Atlas_Props',              BASE + 'Props.png');
+    this.load.image('Atlas_Rocks',              BASE + 'Rocks.png');
+    this.load.image('Atlas_Trees_Bushes',       BASE + 'Trees_Bushes.png');
+    this.load.image('Tileset_Ground',           BASE + 'Tileset_Ground.png');
+    this.load.image('Tileset_RockSlope',        BASE + 'Tileset_RockSlope.png');
+    this.load.image('Tileset_RockSlope_Simple', BASE + 'Tileset_RockSlope_Simple.png');
+    this.load.image('Tileset_Water',            BASE + 'Tileset_Water.png');
+    this.load.image('Road',                     BASE + 'Tileset_Road.png');
+    this.load.image('Tileset_Shadow',           BASE + 'Tileset_Shadow.png');
+    // Animations et arbres
+    this.load.image('Animation_Flowers_Red',   BASE + 'Flowers_Red.png');
+    this.load.image('Animation_Flowers_White', BASE + 'Flowers_White.png');
+    this.load.image('Campfire',                BASE + 'Animation_Campfire.png');
+
+    // La carte au format TMX
+    this.load.tilemapTiledJSON('map', BASE + 'Beginning_Fields.tmj');
+  }
+
+  create() { this.scene.start('WorldMap'); }
+}
+
+// ── WORLDMAP ──
+class WorldMapScene extends Phaser.Scene {
+  constructor() { super('WorldMap'); }
+
+  create() {
+    const ZOOM = 3;
+    const map = this.make.tilemap({ key: 'map' });
+
+    // Ajouter les tilesets avec firstgid exact du TMX
+    // Les clés doivent correspondre exactement au champ "name" dans le TMJ
+    // Phaser utilise ce nom pour faire le lien entre TMJ et texture chargée
+    const tsDefs = [
+      { key:'Atlas_Buildings',          tw:16, th:16 },
+      { key:'Atlas_Props',              tw:16, th:16 },
+      { key:'Atlas_Rocks',              tw:16, th:16 },
+      { key:'Atlas_Trees_Bushes',       tw:16, th:16 },
+      { key:'Tileset_Ground',           tw:16, th:16 },
+      { key:'Tileset_RockSlope',        tw:16, th:16 },
+      { key:'Tileset_RockSlope_Simple', tw:16, th:16 },
+      { key:'Tileset_Water',            tw:16, th:16 },
+      { key:'Road',                     tw:16, th:16 },
+      { key:'Tileset_Shadow',           tw:16, th:16 },
+      { key:'Animation_Flowers_Red',    tw:16, th:16 },
+      { key:'Animation_Flowers_White',  tw:16, th:16 },
+      { key:'Campfire',                 tw:16, th:16 },
+    ];
+
+    const tilesets = [];
+    for (const def of tsDefs) {
+      try {
+        const ts = map.addTilesetImage(def.key, def.key, def.tw, def.th, 0, 0);
+        if (ts) tilesets.push(ts);
+        else console.warn('null tileset:', def.key);
+      } catch(e) { console.error('tileset error:', def.key, e.message); }
+    }
+    console.log('Tilesets OK:', tilesets.length, '/', tsDefs.length);
+
+    // Calques dans l'ordre de rendu
+    const layerOrder = ['Ground','Flowers','Road','RockSlopes','RockSlopes_Auto','Water','Shadows/Shadows'];
+    const layers = [];
+    for (let i = 0; i < layerOrder.length; i++) {
+      try {
+        const l = map.createLayer(layerOrder[i], tilesets, 0, 0);
+        if (l) { l.setDepth(i); layers.push(l); }
+      } catch(e) { /* calque absent */ }
+    }
+    console.log('Layers OK:', layers.map(l=>l.layer.name));
+
+    // Calques solides (eau + rochers)
+    this._solidLayers = layers.filter(l => ['Water','RockSlopes','RockSlopes_Auto'].includes(l.layer.name));
+    this._map = map;
+
+    // Spawn joueur — zone libre trouvée précédemment
+    this._px = 5 * 16 + 8;
+    this._py = 10 * 16 + 8;
+    this._facing = 'down';
+    this._frame = 0;
+    this._frameT = 0;
+    this._moving = false;
+
+    this._shadow = this.add.graphics().setDepth(20);
+    this._gfx    = this.add.graphics().setDepth(21);
+
+    // Caméra
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.cameras.main.setZoom(ZOOM);
+    this.cameras.main.centerOn(this._px, this._py);
+
+    // Input — curseurs natifs + touches WASD/ZQSD individuelles
+    this._cursors = this.input.keyboard.createCursorKeys();
+    this._keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this._keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    this._keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this._keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this._keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    this._keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+
+    // HUD
+    this._hud = this.add.text(8, 8, '', {
+      font:'8px monospace', fill:'#f0e0a0',
+      backgroundColor:'#00000099', padding:{x:4,y:3}
+    }).setScrollFactor(0).setDepth(100);
+
+    this.add.text(this.scale.width/2, this.scale.height-12,
+      'FLÈCHES · WASD · ZQSD',
+      {font:'7px monospace', fill:'#557744'}
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(100);
+  }
+
+  _isDown(k) {
+    const c = this._cursors;
+    if (k==='up')    return c.up.isDown    || this._keyW.isDown || this._keyZ.isDown;
+    if (k==='down')  return c.down.isDown  || this._keyS.isDown;
+    if (k==='left')  return c.left.isDown  || this._keyA.isDown || this._keyQ.isDown;
+    if (k==='right') return c.right.isDown || this._keyD.isDown;
+    return false;
+  }
+
+  _isSolid(wx, wy) {
+    const col = Math.floor(wx / 16);
+    const row = Math.floor(wy / 16);
+    if (row < 0 || row >= 40 || col < 0 || col >= 40) return true;
+    if (COLLISION_GRID[row][col] === 1) return true;
+    return false;
+  }
+
+  _drawPlayer() {
+    const g = this._gfx, s = this._shadow;
+    g.clear(); s.clear();
+    const x = Math.round(this._px), y = Math.round(this._py);
+    const f = this._frame, mov = this._moving;
+    const ls = mov ? (f%2===0?1:-1) : 0;
+    const as = mov ? (f%2===0?-1:1) : 0;
+
+    s.fillStyle(0x000000, 0.3);
+    s.fillEllipse(x, y+9, 10, 4);
+
+    g.fillStyle(0x284890);
+    g.fillRect(x-4,y+4,3,7+ls); g.fillRect(x+1,y+4,3,7-ls);
+    g.fillStyle(0x281808);
+    g.fillRect(x-5,y+11+ls,4,2); g.fillRect(x+1,y+11-ls,4,2);
+    g.fillStyle(0x3858c0);
+    g.fillRect(x-5,y-3,10,7);
+    g.fillRect(x-8,y-1+as,3,6); g.fillRect(x+5,y-1-as,3,6);
+    g.fillStyle(0xf0b880);
+    g.fillRect(x-8,y+4+as,3,2); g.fillRect(x+5,y+4-as,3,2);
+    g.fillRect(x-2,y-6,4,4); g.fillRect(x-5,y-14,10,9);
+    g.fillStyle(0x4a2808); g.fillRect(x-5,y-14,10,3);
+    if (this._facing !== 'up') {
+      g.fillStyle(0x1a0808);
+      g.fillRect(x-3,y-10,2,2); g.fillRect(x+1,y-10,2,2);
+      g.fillStyle(0xffffff);
+      g.fillRect(x-3,y-10,1,1); g.fillRect(x+1,y-10,1,1);
+    }
+  }
+
+  update(time, delta) {
+    const SPEED = 80, dt = Math.min(delta, 50), HIT = 5;
+    let dx=0, dy=0;
+    if (this._isDown('left'))  { dx=-1; this._facing='left'; }
+    if (this._isDown('right')) { dx= 1; this._facing='right'; }
+    if (this._isDown('up'))    { dy=-1; this._facing='up'; }
+    if (this._isDown('down'))  { dy= 1; this._facing='down'; }
+    if (dx&&dy) { dx*=0.707; dy*=0.707; }
+
+    const spd = SPEED*dt/1000;
+    const nx = this._px+dx*spd;
+    const ny = this._py+dy*spd;
+    const mW = this._map.widthInPixels, mH = this._map.heightInPixels;
+
+    if (!this._isSolid(nx-HIT,this._py) && !this._isSolid(nx+HIT,this._py))
+      this._px = Phaser.Math.Clamp(nx, HIT, mW-HIT);
+    if (!this._isSolid(this._px,ny-HIT) && !this._isSolid(this._px,ny+HIT))
+      this._py = Phaser.Math.Clamp(ny, HIT, mH-HIT);
+
+    this._moving = dx!==0||dy!==0;
+    if (this._moving) {
+      this._frameT+=dt;
+      if (this._frameT>160){this._frame=(this._frame+1)%4;this._frameT=0;}
+    } else { this._frame=0; this._frameT=0; }
+
+    this.cameras.main.centerOn(this._px, this._py);
+    this._drawPlayer();
+    this._hud.setText(`Vocabulary Raid v2  [${Math.floor(this._px/16)},${Math.floor(this._py/16)}]`);
+  }
+}
+
+// ── CONFIG ──
+new Phaser.Game({
+  type: Phaser.AUTO,
+  width:  Math.min(window.innerWidth,  640),
+  height: Math.min(window.innerHeight, 640),
+  backgroundColor: '#2a3a1a',
+  pixelArt: true,
+  antialias: false,
+  parent: document.body,
+  scene: [BootScene, WorldMapScene],
+  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+});
+</script>
+</body>
+</html>
