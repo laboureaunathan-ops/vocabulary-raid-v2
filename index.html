@@ -195,654 +195,310 @@ $('pinInput').addEventListener('keydown',   e => { if (e.key === 'Enter') handle
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.87.0/dist/phaser.min.js"></script>
 <script>
-const BASE = "https://laboureaunathan-ops.github.io/vocabulary-raid-v2/";
+// ══════════════════════════════════════════════════════════════
+// SYSTÈME MULTI-ZONES — Vocabulary Raid v2
+// ══════════════════════════════════════════════════════════════
 
-const COLLISION_GRID = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0],
-  [1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1],
-  [1,1,1,1,1,0,1,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1],
-  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,0,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,0,1,1,1,0,0,0,1,1,1,0,0,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1],
-  [1,1,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1],
-  [1,1,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
-  [1,1,1,0,0,1,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1],
-  [1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,0,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,1,1],
-  [1,1,1,1,0,1,1,1,0,0,0,0,0,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,1],
-  [1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1],
-  [1,1,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1],
-  [1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1],
-  [1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1],
-  [1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1],
-  [1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1]
-];
+const ZOOM = 2;
+const BASE = 'https://laboureaunathan-ops.github.io/vocabulary-raid-v2/';
 
-const OBJECTS = [
-  {img:'House_Hay_4_Purple.png', x:56.0, y:330.0, w:128.0, h:128.0},
-  {img:'House_Hay_3.png', x:245.0, y:154.0, w:175.0, h:128.0},
-  {img:'House_Hay_2.png', x:342.0, y:426.0, w:157.0, h:112.0},
-  {img:'House_Hay_1.png', x:510.0, y:201.0, w:89.0, h:91.0},
-  {img:'Tree_Emerald_3.png', x:405.0, y:684.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_1.png', x:364.0, y:686.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_2.png', x:111.0, y:568.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_4.png', x:330.0, y:704.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_2.png', x:297.0, y:679.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_3.png', x:264.0, y:670.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_4.png', x:213.0, y:692.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_1.png', x:-33.0, y:606.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_3.png', x:5.0, y:692.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_4.png', x:52.0, y:708.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_1.png', x:83.0, y:662.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_2.png', x:136.0, y:683.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_3.png', x:172.0, y:712.0, w:52.0, h:92.0},
-  {img:'Bush_Emerald_1.png', x:-24.0, y:630.0, w:40.0, h:29.0},
-  {img:'Table_Medium_1.png', x:149.0, y:399.0, w:42.0, h:39.0},
-  {img:'Bench_3.png', x:173.0, y:366.0, w:14.0, h:16.0},
-  {img:'Bench_3.png', x:148.0, y:411.0, w:14.0, h:16.0},
-  {img:'Bench_3.png', x:173.0, y:415.0, w:14.0, h:16.0},
-  {img:'Bench_1.png', x:126.0, y:400.0, w:14.0, h:30.0},
-  {img:'Bench_1.png', x:201.0, y:391.0, w:14.0, h:30.0},
-  {img:'HayStack_2.png', x:308.0, y:395.0, w:29.0, h:32.0},
-  {img:'Crate_Water_1.png', x:271.0, y:401.0, w:30.0, h:22.0},
-  {img:'Chopped_Tree_1.png', x:328.0, y:473.0, w:32.0, h:31.0},
-  {img:'Banner_Stick_1_Purple.png', x:494.0, y:493.0, w:24.0, h:59.0},
-  {img:'Tree_Emerald_3.png', x:-24.0, y:526.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_1.png', x:-31.0, y:459.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_2.png', x:-7.0, y:424.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_4.png', x:-31.0, y:392.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_3.png', x:-23.0, y:340.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_1.png', x:-33.0, y:274.0, w:64.0, h:63.0},
-  {img:'Bush_Emerald_3.png', x:55.0, y:411.0, w:28.0, h:28.0},
-  {img:'Tree_Emerald_2.png', x:-5.0, y:256.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_3.png', x:620.0, y:245.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_3.png', x:27.0, y:104.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_1.png', x:6.0, y:130.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_2.png', x:607.0, y:285.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_1.png', x:226.0, y:90.0, w:64.0, h:63.0},
-  {img:'Bush_Emerald_4.png', x:418.0, y:97.0, w:16.0, h:28.0},
-  {img:'Tree_Emerald_3.png', x:425.0, y:137.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_2.png', x:602.0, y:191.0, w:46.0, h:63.0},
-  {img:'Bush_Emerald_2.png', x:481.0, y:135.0, w:48.0, h:16.0},
-  {img:'Tree_Emerald_1.png', x:-41.0, y:71.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_1.png', x:115.0, y:16.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_2.png', x:65.0, y:33.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_3.png', x:-15.0, y:22.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_4.png', x:25.0, y:11.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_4.png', x:380.0, y:15.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_1.png', x:519.0, y:17.0, w:64.0, h:63.0},
-  {img:'Tree_Emerald_2.png', x:570.0, y:41.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_3.png', x:602.0, y:24.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_3.png', x:608.0, y:366.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_1.png', x:606.0, y:430.0, w:64.0, h:63.0},
-  {img:'Bush_Emerald_1.png', x:197.0, y:12.0, w:40.0, h:29.0},
-  {img:'Tree_Emerald_2.png', x:279.0, y:13.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_4.png', x:588.0, y:341.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_4.png', x:588.0, y:713.0, w:48.0, h:93.0},
-  {img:'Tree_Emerald_2.png', x:618.0, y:650.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_3.png', x:623.0, y:604.0, w:52.0, h:92.0},
-  {img:'Tree_Emerald_2.png', x:579.0, y:516.0, w:46.0, h:63.0},
-  {img:'Tree_Emerald_1.png', x:605.0, y:534.0, w:64.0, h:63.0},
-  {img:'Bush_Emerald_1.png', x:619.0, y:462.0, w:40.0, h:29.0},
-  {img:'Rock_Brown_4.png', x:259.0, y:559.0, w:27.0, h:27.0},
-  {img:'Rock_Brown_6.png', x:213.0, y:464.0, w:14.0, h:14.0},
-  {img:'Rock_Brown_4.png', x:43.0, y:612.0, w:27.0, h:27.0},
-  {img:'Rock_Brown_1.png', x:101.0, y:547.0, w:28.0, h:14.0},
-  {img:'Rock_Brown_2.png', x:189.0, y:584.0, w:15.0, h:30.0},
-  {img:'Rock_Brown_4.png', x:12.0, y:326.0, w:27.0, h:27.0},
-  {img:'Rock_Brown_4.png', x:594.0, y:540.0, w:27.0, h:27.0},
-  {img:'Rock_Brown_6.png', x:609.0, y:224.0, w:14.0, h:14.0},
-  {img:'Rock_Brown_4.png', x:227.0, y:106.0, w:27.0, h:27.0},
-  {img:'Bench_1.png', x:410.0, y:139.0, w:14.0, h:30.0},
-  {img:'Sign_1.png', x:72.0, y:138.0, w:24.0, h:21.0},
-  {img:'Sack_3.png', x:304.0, y:297.0, w:16.0, h:14.0},
-  {img:'Barrel_Small_Empty.png', x:49.0, y:289.0, w:16.0, h:20.0},
-  {img:'Crate_Large_Empty.png', x:494.0, y:167.0, w:24.0, h:29.0},
-  {img:'Crate_Medium_Closed.png', x:487.0, y:178.0, w:16.0, h:21.0},
-  {img:'Crate_Large_Empty.png', x:281.0, y:462.0, w:24.0, h:29.0},
-  {img:'Sack_3.png', x:292.0, y:473.0, w:16.0, h:14.0},
-  {img:'Bench_3.png', x:277.0, y:523.0, w:14.0, h:16.0},
-  {img:'Bench_1.png', x:227.0, y:495.0, w:14.0, h:30.0},
-  {img:'BulletinBoard_1.png', x:246.0, y:203.0, w:44.0, h:42.0},
-  {img:'Plant_2.png', x:306.0, y:258.0, w:15.0, h:11.0},
-  {img:'Plant_2.png', x:46.0, y:330.0, w:15.0, h:11.0},
-  {img:'Plant_2.png', x:597.0, y:203.0, w:15.0, h:11.0},
-  {img:'Plant_2.png', x:513.0, y:635.0, w:15.0, h:11.0},
-  {img:'Plant_2.png', x:428.0, y:501.0, w:15.0, h:11.0},
-  {img:'Plant_2.png', x:146.0, y:617.0, w:15.0, h:11.0},
-  {img:'HayStack_2.png', x:451.0, y:161.0, w:29.0, h:32.0},
-  {img:'Banner_Stick_1_Purple.png', x:558.0, y:492.0, w:24.0, h:59.0},
-  {img:'Sack_3.png', x:276.0, y:410.0, w:16.0, h:14.0},
-  {img:'HayStack_2.png', x:183.0, y:75.0, w:29.0, h:32.0},
-  {img:'Barrel_Small_Empty.png', x:167.0, y:58.0, w:16.0, h:20.0},
-  {img:'Bush_Emerald_3.png', x:135.0, y:60.0, w:28.0, h:28.0},
-  {img:'Bush_Emerald_3.png', x:328.0, y:322.0, w:28.0, h:28.0},
-  {img:'Bush_Emerald_3.png', x:452.0, y:510.0, w:28.0, h:28.0},
-  {img:'Bush_Emerald_1.png', x:192.0, y:300.0, w:40.0, h:29.0},
-  {img:'Bush_Emerald_1.png', x:84.0, y:476.0, w:40.0, h:29.0},
-  {img:'Bush_Emerald_1.png', x:191.0, y:128.0, w:40.0, h:29.0},
-  {img:'Tree_Emerald_1.png', x:372.0, y:274.0, w:64.0, h:63.0},
-  {img:'Rock_Brown_4.png', x:408.0, y:289.0, w:27.0, h:27.0},
-  {img:'Rock_Brown_9.png', x:386.0, y:491.0, w:9.0, h:12.0},
-  {img:'Rock_Brown_9.png', x:83.0, y:77.0, w:9.0, h:12.0},
-  {img:'Rock_Brown_9.png', x:599.0, y:182.0, w:9.0, h:12.0},
-  {img:'Rock_Brown_4.png', x:400.0, y:27.0, w:27.0, h:27.0},
-  {img:'Rock_Brown_6.png', x:627.0, y:33.0, w:14.0, h:14.0},
-  {img:'Rock_Brown_2.png', x:106.0, y:93.0, w:15.0, h:30.0},
-  {img:'Plant_2.png', x:168.0, y:97.0, w:15.0, h:11.0},
-  {img:'Bush_Emerald_5.png', x:87.0, y:121.0, w:14.0, h:14.0},
-  {img:'Bush_Emerald_5.png', x:274.0, y:453.0, w:14.0, h:14.0},
-  {img:'Bush_Emerald_2.png', x:394.0, y:489.0, w:48.0, h:16.0},
-  {img:'Bush_Emerald_7.png', x:29.0, y:485.0, w:12.0, h:9.0},
-  {img:'Bush_Emerald_6.png', x:181.0, y:280.0, w:15.0, h:10.0},
-  {img:'Bush_Emerald_7.png', x:503.0, y:172.0, w:12.0, h:9.0},
-  {img:'Bush_Emerald_7.png', x:570.0, y:207.0, w:12.0, h:9.0},
-  {img:'Bush_Emerald_6.png', x:345.0, y:156.0, w:15.0, h:10.0},
-  {img:'Bush_Emerald_6.png', x:106.0, y:331.0, w:15.0, h:10.0},
-  {img:'Bush_Emerald_4.png', x:583.0, y:214.0, w:16.0, h:28.0},
-  {img:'Bush_Emerald_4.png', x:360.0, y:11.0, w:16.0, h:28.0},
-  {img:'Bush_Emerald_4.png', x:21.0, y:21.0, w:16.0, h:28.0},
-  {img:'Bush_Emerald_3.png', x:135.0, y:580.0, w:28.0, h:28.0},
-  {img:'Bush_Emerald_4.png', x:268.0, y:427.0, w:16.0, h:28.0},
-  {img:'Bush_Emerald_4.png', x:578.0, y:350.0, w:16.0, h:28.0},
-  {img:'Bush_Emerald_4.png', x:511.0, y:349.0, w:16.0, h:28.0},
-  {img:'LampPost_3.png', x:497.182, y:301.182, w:46.0, h:62.0},
-  {img:'LampPost_3.png', x:97.75, y:414.0, w:46.0, h:62.0},
-  {img:'LampPost_3.png', x:224.5, y:122.25, w:46.0, h:62.0},
-];
+// ── Configuration des zones ──
+const ZONES = {
+  Spawn: {
+    key:     'Spawn',
+    mapFile: 'Spawn.tmj',
+    spawnX:  88,  spawnY: 168,
+    tilesets: [
+      'Atlas_Buildings','Objects_Buildings','Objects_Props','Objects_Rocks',
+      'Objects_Trees','Atlas_Props','Atlas_Rocks','Tileset_Ground',
+      'Tileset_RockSlope','Tileset_RockSlope_Simple','Tileset_Water',
+      'Tilesets_Road','Atlas_Trees_Bushes',
+      'Animation_Flowers_Red','Animation_Flowers_White','Animation_Campfire',
+      'Tileset_Shadow','Objects_Shadows'
+    ],
+    // Transitions : quand le joueur touche ce bord → aller à cette zone
+    transitions: [
+      { dir:'north', targetZone:'Nord',      condition: (px,py,mW,mH) => py < 16 && px > mW*0.3 && px < mW*0.7 },
+      { dir:'west',  targetZone:'Ouest',     condition: (px,py,mW,mH) => px < 16 && py > mH*0.3 && py < mH*0.7 },
+      { dir:'nw',    targetZone:'NordOuest', condition: (px,py,mW,mH) => px < 16 && py < 16 },
+      { dir:'south', targetZone:'Sud',       condition: (px,py,mW,mH) => py > mH - 16 },
+    ],
+    hasNoticeboard: true,  // panneau multijoueur au centre
+    noticeboardX: 320, noticeboardY: 320, // position approximative centre spawn
+  },
+  Nord: {
+    key:     'Nord',
+    mapFile: 'nord.tmj',
+    spawnX:  640, spawnY: 1280,
+    tilesets: [
+      'Castle_Floor','Castle_Building','Tileset_Castle_Grass',
+      'Atlas_Trees_Bushes_Castle','Objects_Trees_Castle','Character',
+      'Animation_Fountain_1','Objects_Buildings','Castle_Details',
+      'Tileset_Ground_Castle','Tileset_Road','Tileset_Water',
+      'Objects_Props_Castle','Animation_Banner_2','Animation_Banner_3',
+      'Animation_Banner_1','Animation_MarketStand_1','Animation_Torch_1',
+      'Tileset_Shadow'
+    ],
+    transitions: [
+      { dir:'south', targetZone:'Spawn', condition: (px,py,mW,mH) => py > mH - 16 },
+    ],
+  },
+  NordOuest: {
+    key:     'NordOuest',
+    mapFile: 'nord_ouest.tmj',
+    spawnX:  304, spawnY: 608,
+    tilesets: [
+      'Objects_Buildings','Objects_Props','Objects_Rocks','Objects_Trees',
+      'Tileset_Ground','Tileset_Road','Tileset_RockSlope_1_Brown',
+      'Tileset_Shadow','Animation_Flowers','Animation_Campfire',
+      'Animation_Banner_1','Animation_MagicCrystal','Objects_Shadows',
+      'Animation_Rock_Gray_EmeraldGrass'
+    ],
+    transitions: [
+      { dir:'south', targetZone:'Spawn', condition: (px,py,mW,mH) => py > mH - 16 },
+      { dir:'east',  targetZone:'Spawn', condition: (px,py,mW,mH) => px > mW - 16 },
+    ],
+  },
+  Ouest: {
+    key:     'Ouest',
+    mapFile: 'ouest.tmj',
+    spawnX:  16, spawnY: 288,
+    tilesets: [
+      'Objects_Buildings','Objects_Props','Tileset_RockSlope_1_Brown',
+      'Tileset_Ground','Atlas_Buildings_Bridges','Tileset_Water',
+      'Tileset_Road','Objects_Trees','Objects_Rocks',
+      'Tileset_Shadow','Objects_Shadows'
+    ],
+    transitions: [
+      { dir:'east', targetZone:'Spawn', condition: (px,py,mW,mH) => px > mW - 16 },
+    ],
+  },
+  Sud: {
+    key:     'Sud',
+    mapFile: 'sud.tmj',
+    spawnX:  512, spawnY: 16,
+    tilesets: [
+      'Tileset_Road','Tileset_RockSlope_1_Brown','Atlas_Rocks',
+      'Tileset_Fence_1','Tileset_FarmField','Animation_Waterfall',
+      'Objects_Buildings','Objects_Props','Objects_Trees','Objects_Rocks',
+      'Tileset_Ground','Tileset_Water','Objects_CityWalls',
+      'Tileset_Shadow','Tileset_RockSlope_2_Gray','Animation_Flowers',
+      'Animation_Banner_1','Objects_Shadows'
+    ],
+    transitions: [
+      { dir:'north', targetZone:'Spawn',  condition: (px,py,mW,mH) => py < 16 },
+      { dir:'south', targetZone:'SudSud', condition: (px,py,mW,mH) => py > mH - 16 },
+    ],
+  },
+  SudSud: {
+    key:     'SudSud',
+    mapFile: 'sud_sud.tmj',
+    spawnX:  80, spawnY: 16,
+    tilesets: [
+      'Tileset_FarmField','Tileset_Fence_1','Tileset_Ground',
+      'Tileset_Road','Tileset_RockSlope_1_Brown','Tileset_Sand',
+      'Tileset_Shadow','Tileset_TallGrass','Tileset_Water',
+      'Animation_Waterfall','Animation_Flowers','Objects_Buildings',
+      'Objects_CityWalls','Objects_Props','Objects_Rocks','Objects_Trees',
+      'Atlas_Buildings_Bridges','Animation_Campfire','Animation_Banner_1',
+      'Objects_Shadows'
+    ],
+    transitions: [
+      { dir:'north', targetZone:'Sud', condition: (px,py,mW,mH) => py < 16 },
+    ],
+  },
+};
 
-function isSolidGrid(wx, wy) {
-  const col = Math.floor(wx / 16);
-  const row = Math.floor(wy / 16);
-  if (row < 0 || row >= 40 || col < 0 || col >= 40) return true;
-  return COLLISION_GRID[row][col] === 1;
+// ── Mapping clé Phaser → fichier PNG sur GitHub ──
+const TILESET_PNG = {
+  'Atlas_Buildings':            'Buildings.png',
+  'Objects_Buildings':          'Buildings.png',
+  'Objects_Props':              'Props.png',
+  'Atlas_Props':                'Props.png',
+  'Objects_Rocks':              'Rocks.png',
+  'Atlas_Rocks':                'Rocks.png',
+  'Objects_Trees':              'Trees_Bushes.png',
+  'Atlas_Trees_Bushes':         'Trees_Bushes.png',
+  'Atlas_Trees_Bushes_Castle':  'Trees_Bushes_Castle.png',
+  'Objects_Trees_Castle':       'Trees_Castle.png',
+  'Tileset_Ground':             'Tileset_Ground.png',
+  'Tileset_Ground_Castle':      'Tileset_Ground_Castle.png',
+  'Tileset_RockSlope':          'Tileset_RockSlope.png',
+  'Tileset_RockSlope_Simple':   'Tileset_RockSlope_Simple.png',
+  'Tileset_RockSlope_1_Brown':  'Tileset_RockSlope_1_Brown.png',
+  'Tileset_RockSlope_2_Gray':   'Tileset_RockSlope_2_Gray.png',
+  'Tileset_Water':              'Tileset_Water.png',
+  'Tileset_Road':               'Tileset_Road.png',
+  'Tilesets_Road':              'Tileset_Road.png',
+  'Tileset_Shadow':             'Tileset_Shadow.png',
+  'Tileset_Castle_Grass':       'Tileset_Castle_Grass.png',
+  'Tileset_FarmField':          'Tileset_FarmField.png',
+  'Tileset_Fence_1':            'Tileset_Fence_1.png',
+  'Tileset_Sand':               'Tileset_Sand.png',
+  'Tileset_TallGrass':          'Tileset_TallGrass.png',
+  'Objects_Shadows':            'Objects_Shadows.png',
+  'Objects_CityWalls':          'Objects_CityWalls.png',
+  'Objects_Props_Castle':       'Props_Castle.png',
+  'Objects_Buildings_Castle':   'Buildings_Castle.png',
+  'Atlas_Buildings_Bridges':    'Buildings_Bridges.png',
+  'Castle_Floor':               'Castle_Floor.png',
+  'Castle_Building':            'Castle_Building.png',
+  'Castle_Details':             'Castle_Details.png',
+  'Character':                  'Character.png',
+  'Animation_Flowers_Red':      'Flowers_Red.png',
+  'Animation_Flowers_White':    'Flowers_White.png',
+  'Animation_Flowers':          'Animation_Flowers.png',
+  'Animation_Campfire':         'Animation_Campfire.png',
+  'Animation_Banner_1':         'Animation_Banner_1.png',
+  'Animation_Banner_2':         'Animation_Banner_2.png',
+  'Animation_Banner_3':         'Animation_Banner_3.png',
+  'Animation_Fountain_1':       'Animation_Fountain_1.png',
+  'Animation_MagicCrystal':     'Animation_MagicCrystal.png',
+  'Animation_MarketStand_1':    'Animation_MarketStand_1.png',
+  'Animation_Torch_1':          'Animation_Torch_1.png',
+  'Animation_Waterfall':        'Animation_Waterfall.png',
+  'Animation_Rock_Gray_EmeraldGrass': 'Animation_Rock_Gray_EmeraldGrass.png',
+};
+
+
+// ══════════════════════════════════════════════════════════════
+// TransitionScene — Fondu blanc entre zones
+// ══════════════════════════════════════════════════════════════
+class TransitionScene extends Phaser.Scene {
+  constructor() { super('Transition'); }
+
+  init(data) {
+    this._targetZone  = data.targetZone;
+    this._spawnX      = data.spawnX;
+    this._spawnY      = data.spawnY;
+  }
+
+  create() {
+    const W = this.scale.width, H = this.scale.height;
+    const rect = this.add.rectangle(W/2, H/2, W, H, 0xffffff, 0)
+      .setScrollFactor(0).setDepth(9999);
+
+    // Fondu blanc entrant (transparent → blanc)
+    this.tweens.add({
+      targets: rect, alpha: 1, duration: 400, ease: 'Linear',
+      onComplete: () => {
+        // Lancer la nouvelle zone
+        this.scene.start(this._targetZone, {
+          spawnX: this._spawnX,
+          spawnY: this._spawnY,
+          fromTransition: true,
+        });
+        this.scene.stop();
+      }
+    });
+  }
 }
 
-// ── BOOT ──
-class BootScene extends Phaser.Scene {
-  constructor() { super('Boot'); }
+// ══════════════════════════════════════════════════════════════
+// BaseZoneScene — classe parente pour toutes les zones
+// ══════════════════════════════════════════════════════════════
+class BaseZoneScene extends Phaser.Scene {
+  constructor(key) { super(key); this._zoneKey = key; }
+
+  init(data) {
+    this._spawnX = data && data.spawnX != null ? data.spawnX : ZONES[this._zoneKey].spawnX;
+    this._spawnY = data && data.spawnY != null ? data.spawnY : ZONES[this._zoneKey].spawnY;
+    this._fromTransition = data && data.fromTransition;
+  }
 
   preload() {
     const W = this.scale.width, H = this.scale.height;
     const bg  = this.add.rectangle(W/2, H/2, 320, 36, 0x111122);
     const bar = this.add.rectangle(W/2-158, H/2, 4, 28, 0xc8a030).setOrigin(0, 0.5);
-    const lbl = this.add.text(W/2, H/2-30, 'Vocabulary Raid v2', {font:'14px monospace', fill:'#f0e0a0'}).setOrigin(0.5);
-    const sta = this.add.text(W/2, H/2+30, '', {font:'10px monospace', fill:'#88aa66'}).setOrigin(0.5);
+    const lbl = this.add.text(W/2, H/2-30, 'Loading ' + this._zoneKey + '...', {
+      font:'14px monospace', fill:'#f0e0a0'
+    }).setOrigin(0.5);
     this.load.on('progress', v => { bar.width = 316*v; });
-    this.load.on('filecomplete', k => { sta.setText(k); });
-    this.load.on('loaderror', f => { console.error('ERREUR:', f.key); });
+    this.load.on('loaderror', f => console.error('ERREUR:', f.key));
 
-    // Tilesets atlas
-    this.load.image('Atlas_Buildings',          BASE + 'Buildings.png');
-    this.load.image('Atlas_Props',              BASE + 'Props.png');
-    this.load.image('Atlas_Rocks',              BASE + 'Rocks.png');
-    this.load.image('Atlas_Trees_Bushes',       BASE + 'Trees_Bushes.png');
-    this.load.image('Tileset_Ground',           BASE + 'Tileset_Ground.png');
-    this.load.image('Tileset_RockSlope',        BASE + 'Tileset_RockSlope.png');
-    this.load.image('Tileset_RockSlope_Simple', BASE + 'Tileset_RockSlope_Simple.png');
-    this.load.spritesheet('Tileset_Water',            BASE + 'Tileset_Water.png',      { frameWidth: 16, frameHeight: 16 });
-    this.load.image('Road',                     BASE + 'Tileset_Road.png');
-    this.load.image('Tileset_Shadow',           BASE + 'Tileset_Shadow.png');
-    this.load.spritesheet('Animation_Flowers_Red',    BASE + 'Flowers_Red.png',         { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('Animation_Flowers_White',  BASE + 'Flowers_White.png',       { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet('Campfire',                 BASE + 'Animation_Campfire.png',  { frameWidth: 16, frameHeight: 16 });
+    const zone = ZONES[this._zoneKey];
 
-    // Objets individuels
-    this.load.image('Banner_Stick_1_Purple', BASE + 'Banner_Stick_1_Purple.png');
-    this.load.image('Barrel_Small_Empty', BASE + 'Barrel_Small_Empty.png');
-    this.load.image('Bench_1', BASE + 'Bench_1.png');
-    this.load.image('Bench_3', BASE + 'Bench_3.png');
-    this.load.image('BulletinBoard_1', BASE + 'BulletinBoard_1.png');
-    this.load.image('Bush_Emerald_1', BASE + 'Bush_Emerald_1.png');
-    this.load.image('Bush_Emerald_2', BASE + 'Bush_Emerald_2.png');
-    this.load.image('Bush_Emerald_3', BASE + 'Bush_Emerald_3.png');
-    this.load.image('Bush_Emerald_4', BASE + 'Bush_Emerald_4.png');
-    this.load.image('Bush_Emerald_5', BASE + 'Bush_Emerald_5.png');
-    this.load.image('Bush_Emerald_6', BASE + 'Bush_Emerald_6.png');
-    this.load.image('Bush_Emerald_7', BASE + 'Bush_Emerald_7.png');
-    this.load.image('Chopped_Tree_1', BASE + 'Chopped_Tree_1.png');
-    this.load.image('Crate_Large_Empty', BASE + 'Crate_Large_Empty.png');
-    this.load.image('Crate_Medium_Closed', BASE + 'Crate_Medium_Closed.png');
-    this.load.image('Crate_Water_1', BASE + 'Crate_Water_1.png');
-    this.load.image('HayStack_2', BASE + 'HayStack_2.png');
-    this.load.image('House_Hay_1', BASE + 'House_Hay_1.png');
-    this.load.image('House_Hay_2', BASE + 'House_Hay_2.png');
-    this.load.image('House_Hay_3', BASE + 'House_Hay_3.png');
-    this.load.image('House_Hay_4_Purple', BASE + 'House_Hay_4_Purple.png');
-    this.load.image('LampPost_3', BASE + 'LampPost_3.png');
-    this.load.image('Plant_2', BASE + 'Plant_2.png');
-    this.load.image('Rock_Brown_1', BASE + 'Rock_Brown_1.png');
-    this.load.image('Rock_Brown_2', BASE + 'Rock_Brown_2.png');
-    this.load.image('Rock_Brown_4', BASE + 'Rock_Brown_4.png');
-    this.load.image('Rock_Brown_6', BASE + 'Rock_Brown_6.png');
-    this.load.image('Rock_Brown_9', BASE + 'Rock_Brown_9.png');
-    this.load.image('Sack_3', BASE + 'Sack_3.png');
-    this.load.image('Sign_1', BASE + 'Sign_1.png');
-    this.load.image('Table_Medium_1', BASE + 'Table_Medium_1.png');
-    this.load.image('Tree_Emerald_1', BASE + 'Tree_Emerald_1.png');
-    this.load.image('Tree_Emerald_2', BASE + 'Tree_Emerald_2.png');
-    this.load.image('Tree_Emerald_3', BASE + 'Tree_Emerald_3.png');
-    this.load.image('Tree_Emerald_4', BASE + 'Tree_Emerald_4.png');
-    this.load.tilemapTiledJSON('map', BASE + 'Beginning_Fields.tmj');
+    // Charger les tilesets de cette zone
+    const loaded = new Set();
+    for (const tsKey of zone.tilesets) {
+      if (loaded.has(tsKey)) continue;
+      loaded.add(tsKey);
+      const png = TILESET_PNG[tsKey];
+      if (!png) { console.warn('PNG manquant pour:', tsKey); continue; }
+      if (!this.textures.exists(tsKey)) {
+        this.load.image(tsKey, BASE + png);
+      }
+    }
 
-    // Sprites joueur
-    this.load.spritesheet('char_idle',  BASE + 'Character_Idle.png',  { frameWidth: 40, frameHeight: 48 });
-    this.load.spritesheet('char_walk',  BASE + 'Character_Walk.png',  { frameWidth: 40, frameHeight: 48 });
-    this.load.spritesheet('char_slash', BASE + 'Character_Slash.png', { frameWidth: 40, frameHeight: 48 });
+    // Carte
+    if (!this.cache.tilemap.exists('map_' + this._zoneKey)) {
+      this.load.tilemapTiledJSON('map_' + this._zoneKey, BASE + zone.mapFile);
+    }
+
+    // Sprites joueur (communs)
+    if (!this.textures.exists('char_idle')) {
+      this.load.spritesheet('char_idle',  BASE + 'Character_Idle.png',  { frameWidth: 40, frameHeight: 48 });
+      this.load.spritesheet('char_walk',  BASE + 'Character_Walk.png',  { frameWidth: 40, frameHeight: 48 });
+      this.load.spritesheet('char_slash', BASE + 'Character_Slash.png', { frameWidth: 40, frameHeight: 48 });
+    }
   }
 
-  create() { this.scene.start('WorldMap'); }
-}
-
-// ── WORLDMAP ──
-class WorldMapScene extends Phaser.Scene {
-  constructor() { super('WorldMap'); }
-
   create() {
-    const ZOOM = 2;
-    const map = this.make.tilemap({ key: 'map' });
-    this._map = map;
+    const zone   = ZONES[this._zoneKey];
+    const map    = this.make.tilemap({ key: 'map_' + this._zoneKey });
+    this._map    = map;
 
-    // Tilesets
-    const tsDefs = [
-      'Atlas_Buildings','Atlas_Props','Atlas_Rocks','Atlas_Trees_Bushes',
-      'Tileset_Ground','Tileset_RockSlope','Tileset_RockSlope_Simple',
-      'Tileset_Water','Road','Tileset_Shadow',
-      'Animation_Flowers_Red','Animation_Flowers_White','Campfire',
-    ];
+    // Ajouter les tilesets
     const tilesets = [];
-    for (const key of tsDefs) {
+    for (const tsKey of zone.tilesets) {
       try {
-        const ts = map.addTilesetImage(key, key, 16, 16, 0, 0);
+        const ts = map.addTilesetImage(tsKey, tsKey, 16, 16, 0, 0);
         if (ts) tilesets.push(ts);
-      } catch(e) { console.warn('tileset skip:', key); }
+      } catch(e) {}
     }
-    console.log('Tilesets:', tilesets.length);
 
-    // Calques — le groupe Shadows contient un sous-layer 'Shadows'
-    const layerOrder = ['Ground','Flowers','Road','RockSlopes_Auto','Water','Shadows/Shadows'];
-    const layerDepths = { 'Ground':0, 'Flowers':1, 'Road':2, 'RockSlopes_Auto':3, 'Water':-1, 'Shadows/Shadows':5 };
-    const layers = [];
+    // Créer les layers
+    const layerOrder = [
+      'Ground','Ground fix','Shore','Road','Farm Field','Farm Fields',
+      'Flowers','Water','Floor','Grass','Shadow','Grass 2','Shadow 2',
+      'Castle Floor 1','Castle Floor 2','RockSlopes_1_Brown',
+      'RockSlopes_1_Brown_Auto','RockSlopes','RockSlopes_Auto',
+      'Bridge','Pier','Fence','Tall Grass',
+      'Castle Walls 2 Behind','Castle Walls 2','Castle Walls 1',
+      'Castle Details','Castle Details 2','Shadows/Shadows','Animations',
+    ];
     for (let i = 0; i < layerOrder.length; i++) {
       try {
         const l = map.createLayer(layerOrder[i], tilesets, 0, 0);
-        if (l) { l.setDepth(layerDepths[layerOrder[i]] ?? i); layers.push(l); }
-      } catch(e) { console.warn('layer skip:', layerOrder[i], e.message); }
-    }
-    console.log('Layers:', layers.map(l=>l.layer.name));
-
-    // ── Sprites animés : fleurs et feu de camp ──
-    this.anims.create({ key:'a5578', frames:[0,6,12,18,24,30,36,42].map(f=>({key:'Animation_Flowers_Red',frame:f})), frameRate:7, repeat:-1 });
-    this.anims.create({ key:'a5579', frames:[1,7,13,19,25,31,37,43].map(f=>({key:'Animation_Flowers_Red',frame:f})), frameRate:7, repeat:-1 });
-    this.anims.create({ key:'a5581', frames:[3,9,15,21,27,33,39,45].map(f=>({key:'Animation_Flowers_Red',frame:f})), frameRate:7, repeat:-1 });
-    this.anims.create({ key:'a5583', frames:[5,11,17,23,29,35,41,47].map(f=>({key:'Animation_Flowers_Red',frame:f})), frameRate:7, repeat:-1 });
-    this.anims.create({ key:'a5626', frames:[48,54,60,66,72,78,84,90].map(f=>({key:'Animation_Flowers_Red',frame:f})), frameRate:7, repeat:-1 });
-    this.anims.create({ key:'a5627', frames:[49,55,61,67,73,79,85,91].map(f=>({key:'Animation_Flowers_Red',frame:f})), frameRate:7, repeat:-1 });
-    this.anims.create({ key:'a5629', frames:[51,57,63,69,75,81,87,93].map(f=>({key:'Animation_Flowers_Red',frame:f})), frameRate:7, repeat:-1 });
-    this.anims.create({ key:'a5674', frames:[0,6,12,18,24,30,36,42].map(f=>({key:'Animation_Flowers_White',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5675', frames:[1,7,13,19,25,31,37,43].map(f=>({key:'Animation_Flowers_White',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5677', frames:[3,9,15,21,27,33,39,45].map(f=>({key:'Animation_Flowers_White',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5679', frames:[5,11,17,23,29,35,41,47].map(f=>({key:'Animation_Flowers_White',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5722', frames:[48,54,60,66,72,78,84,90].map(f=>({key:'Animation_Flowers_White',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5723', frames:[49,55,61,67,73,79,85,91].map(f=>({key:'Animation_Flowers_White',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5725', frames:[51,57,63,69,75,81,87,93].map(f=>({key:'Animation_Flowers_White',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5770', frames:[0,2,4,6,8,10,12,14].map(f=>({key:'Campfire',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5771', frames:[1,3,5,7,9,11,13,15].map(f=>({key:'Campfire',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5786', frames:[16,18,20,22,24,26,28,30].map(f=>({key:'Campfire',frame:f})), frameRate:10, repeat:-1 });
-    this.anims.create({ key:'a5787', frames:[17,19,21,23,25,27,29,31].map(f=>({key:'Campfire',frame:f})), frameRate:10, repeat:-1 });
-    // Fleurs rouges et blanches
-    this.add.sprite(64,16,'Animation_Flowers_Red').setOrigin(0,0).setDepth(17).play('a5583');
-    this.add.sprite(480,48,'Animation_Flowers_Red').setOrigin(0,0).setDepth(49).play('a5583');
-    this.add.sprite(144,64,'Animation_Flowers_Red').setOrigin(0,0).setDepth(65).play('a5578');
-    this.add.sprite(160,64,'Animation_Flowers_Red').setOrigin(0,0).setDepth(65).play('a5579');
-    this.add.sprite(144,80,'Animation_Flowers_Red').setOrigin(0,0).setDepth(81).play('a5626');
-    this.add.sprite(160,80,'Animation_Flowers_Red').setOrigin(0,0).setDepth(81).play('a5627');
-    this.add.sprite(192,80,'Animation_Flowers_White').setOrigin(0,0).setDepth(81).play('a5679');
-    this.add.sprite(0,128,'Animation_Flowers_White').setOrigin(0,0).setDepth(129).play('a5677');
-    this.add.sprite(0,144,'Animation_Flowers_White').setOrigin(0,0).setDepth(145).play('a5725');
-    this.add.sprite(400,160,'Animation_Flowers_Red').setOrigin(0,0).setDepth(161).play('a5578');
-    this.add.sprite(416,160,'Animation_Flowers_Red').setOrigin(0,0).setDepth(161).play('a5579');
-    this.add.sprite(224,176,'Animation_Flowers_Red').setOrigin(0,0).setDepth(177).play('a5583');
-    this.add.sprite(400,176,'Animation_Flowers_Red').setOrigin(0,0).setDepth(177).play('a5626');
-    this.add.sprite(416,176,'Animation_Flowers_Red').setOrigin(0,0).setDepth(177).play('a5627');
-    this.add.sprite(496,176,'Animation_Flowers_White').setOrigin(0,0).setDepth(177).play('a5677');
-    this.add.sprite(48,192,'Animation_Flowers_Red').setOrigin(0,0).setDepth(193).play('a5581');
-    this.add.sprite(496,192,'Animation_Flowers_White').setOrigin(0,0).setDepth(193).play('a5725');
-    this.add.sprite(48,208,'Animation_Flowers_Red').setOrigin(0,0).setDepth(209).play('a5629');
-    this.add.sprite(336,224,'Animation_Flowers_White').setOrigin(0,0).setDepth(225).play('a5674');
-    this.add.sprite(352,224,'Animation_Flowers_White').setOrigin(0,0).setDepth(225).play('a5675');
-    this.add.sprite(208,240,'Animation_Flowers_White').setOrigin(0,0).setDepth(241).play('a5674');
-    this.add.sprite(224,240,'Animation_Flowers_White').setOrigin(0,0).setDepth(241).play('a5675');
-    this.add.sprite(336,240,'Animation_Flowers_White').setOrigin(0,0).setDepth(241).play('a5722');
-    this.add.sprite(352,240,'Animation_Flowers_White').setOrigin(0,0).setDepth(241).play('a5723');
-    this.add.sprite(208,256,'Animation_Flowers_White').setOrigin(0,0).setDepth(257).play('a5722');
-    this.add.sprite(224,256,'Animation_Flowers_White').setOrigin(0,0).setDepth(257).play('a5723');
-    this.add.sprite(464,288,'Animation_Flowers_Red').setOrigin(0,0).setDepth(289).play('a5578');
-    this.add.sprite(480,288,'Animation_Flowers_Red').setOrigin(0,0).setDepth(289).play('a5579');
-    this.add.sprite(464,304,'Animation_Flowers_Red').setOrigin(0,0).setDepth(305).play('a5626');
-    this.add.sprite(480,304,'Animation_Flowers_Red').setOrigin(0,0).setDepth(305).play('a5627');
-    this.add.sprite(48,336,'Animation_Flowers_White').setOrigin(0,0).setDepth(337).play('a5679');
-    this.add.sprite(608,352,'Animation_Flowers_Red').setOrigin(0,0).setDepth(353).play('a5583');
-    this.add.sprite(96,384,'Animation_Flowers_Red').setOrigin(0,0).setDepth(385).play('a5583');
-    this.add.sprite(240,384,'Animation_Flowers_Red').setOrigin(0,0).setDepth(385).play('a5581');
-    this.add.sprite(240,400,'Animation_Flowers_Red').setOrigin(0,0).setDepth(401).play('a5629');
-    this.add.sprite(496,400,'Animation_Flowers_Red').setOrigin(0,0).setDepth(401).play('a5583');
-    this.add.sprite(48,416,'Animation_Flowers_Red').setOrigin(0,0).setDepth(417).play('a5578');
-    this.add.sprite(64,416,'Animation_Flowers_Red').setOrigin(0,0).setDepth(417).play('a5579');
-    this.add.sprite(48,432,'Animation_Flowers_Red').setOrigin(0,0).setDepth(433).play('a5626');
-    this.add.sprite(64,432,'Animation_Flowers_Red').setOrigin(0,0).setDepth(433).play('a5627');
-    this.add.sprite(16,448,'Animation_Flowers_White').setOrigin(0,0).setDepth(449).play('a5679');
-    this.add.sprite(320,464,'Animation_Flowers_White').setOrigin(0,0).setDepth(465).play('a5679');
-    this.add.sprite(288,480,'Animation_Flowers_White').setOrigin(0,0).setDepth(481).play('a5677');
-    this.add.sprite(288,496,'Animation_Flowers_White').setOrigin(0,0).setDepth(497).play('a5725');
-    this.add.sprite(400,496,'Animation_Flowers_Red').setOrigin(0,0).setDepth(497).play('a5583');
-    this.add.sprite(560,512,'Animation_Flowers_White').setOrigin(0,0).setDepth(513).play('a5674');
-    this.add.sprite(576,512,'Animation_Flowers_White').setOrigin(0,0).setDepth(513).play('a5675');
-    this.add.sprite(560,528,'Animation_Flowers_White').setOrigin(0,0).setDepth(529).play('a5722');
-    this.add.sprite(576,528,'Animation_Flowers_White').setOrigin(0,0).setDepth(529).play('a5723');
-    this.add.sprite(480,560,'Animation_Flowers_Red').setOrigin(0,0).setDepth(561).play('a5581');
-    this.add.sprite(112,576,'Animation_Flowers_White').setOrigin(0,0).setDepth(577).play('a5677');
-    this.add.sprite(480,576,'Animation_Flowers_Red').setOrigin(0,0).setDepth(577).play('a5629');
-    this.add.sprite(112,592,'Animation_Flowers_White').setOrigin(0,0).setDepth(593).play('a5725');
-    this.add.sprite(176,592,'Animation_Flowers_Red').setOrigin(0,0).setDepth(593).play('a5578');
-    this.add.sprite(192,592,'Animation_Flowers_Red').setOrigin(0,0).setDepth(593).play('a5579');
-    this.add.sprite(384,592,'Animation_Flowers_Red').setOrigin(0,0).setDepth(593).play('a5578');
-    this.add.sprite(400,592,'Animation_Flowers_Red').setOrigin(0,0).setDepth(593).play('a5579');
-    this.add.sprite(176,608,'Animation_Flowers_Red').setOrigin(0,0).setDepth(609).play('a5626');
-    this.add.sprite(192,608,'Animation_Flowers_Red').setOrigin(0,0).setDepth(609).play('a5627');
-    this.add.sprite(320,608,'Animation_Flowers_White').setOrigin(0,0).setDepth(609).play('a5679');
-    this.add.sprite(384,608,'Animation_Flowers_Red').setOrigin(0,0).setDepth(609).play('a5626');
-    this.add.sprite(400,608,'Animation_Flowers_Red').setOrigin(0,0).setDepth(609).play('a5627');
-    // Feu de camp (4 tiles = 2x2)
-    this.add.sprite(256,480,'Campfire').setOrigin(0,0).setDepth(481).play('a5770');
-    this.add.sprite(272,480,'Campfire').setOrigin(0,0).setDepth(481).play('a5771');
-    this.add.sprite(256,496,'Campfire').setOrigin(0,0).setDepth(497).play('a5786');
-    this.add.sprite(272,496,'Campfire').setOrigin(0,0).setDepth(497).play('a5787');
-    // ── Eau ──
-    this.anims.create({ key:'w5038', frames:[0, 6, 12, 18].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5039', frames:[1, 7, 13, 19].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5040', frames:[2, 8, 14, 20].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5041', frames:[3, 9, 15, 21].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5042', frames:[4, 10, 16, 22].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5043', frames:[5, 11, 17, 23].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5062', frames:[24, 30, 36, 42].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5063', frames:[25, 31, 37, 43].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5064', frames:[26, 32, 38, 44].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5065', frames:[27, 33, 39, 45].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5066', frames:[28, 34, 40, 46].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5067', frames:[29, 35, 41, 47].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5086', frames:[48, 54, 60, 66].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5087', frames:[49, 55, 61, 67].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5088', frames:[50, 56, 62, 68].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5089', frames:[51, 57, 63, 69].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5090', frames:[52, 58, 64, 70].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5091', frames:[53, 59, 65, 71].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5111', frames:[73, 79, 85, 91].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5112', frames:[74, 80, 86, 92].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5113', frames:[75, 81, 87, 93].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5114', frames:[76, 82, 88, 94].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5115', frames:[77, 83, 89, 95].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5134', frames:[96, 102, 108, 114].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5135', frames:[97, 103, 109, 115].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5136', frames:[98, 104, 110, 116].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5137', frames:[99, 105, 111, 117].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5138', frames:[100, 106, 112, 118].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5139', frames:[101, 107, 113, 119].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5158', frames:[120, 126, 132, 138].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5159', frames:[121, 127, 133, 139].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5160', frames:[122, 128, 134, 140].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5161', frames:[123, 129, 135, 141].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5162', frames:[124, 130, 136, 142].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5163', frames:[125, 131, 137, 143].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5182', frames:[144, 150, 156, 162].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5183', frames:[145, 151, 157, 163].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5184', frames:[146, 152, 158, 164].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5185', frames:[147, 153, 159, 165].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5186', frames:[148, 154, 160, 166].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5187', frames:[149, 155, 161, 167].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5206', frames:[168, 174, 180, 186].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5207', frames:[169, 175, 181, 187].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5208', frames:[170, 176, 182, 188].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5209', frames:[171, 177, 183, 189].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5210', frames:[172, 178, 184, 190].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5230', frames:[192, 198, 204, 210].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5231', frames:[193, 199, 205, 211].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5232', frames:[194, 200, 206, 212].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5278', frames:[240, 246, 252, 258].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5279', frames:[241, 247, 253, 259].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5280', frames:[242, 248, 254, 260].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5281', frames:[243, 249, 255, 261].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5282', frames:[244, 250, 256, 262].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5283', frames:[245, 251, 257, 263].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5302', frames:[264, 270, 276, 282].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5303', frames:[265, 271, 277, 283].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5304', frames:[266, 272, 278, 284].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5305', frames:[267, 273, 279, 285].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5306', frames:[268, 274, 280, 286].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5307', frames:[269, 275, 281, 287].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5326', frames:[288, 294, 300, 306].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5327', frames:[289, 295, 301, 307].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5328', frames:[290, 296, 302, 308].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.anims.create({ key:'w5329', frames:[291, 297, 303, 309].map(f=>({key:'Tileset_Water',frame:f})), frameRate:3, repeat:-1 });
-    this.add.sprite(448,0,'Tileset_Water').setOrigin(0,0).setDepth(10000+0).play('w5087');
-    this.add.sprite(464,0,'Tileset_Water').setOrigin(0,0).setDepth(10000+0).play('w5135');
-    this.add.sprite(480,0,'Tileset_Water').setOrigin(0,0).setDepth(10000+0).play('w5064');
-    this.add.sprite(496,0,'Tileset_Water').setOrigin(0,0).setDepth(10000+0).play('w5065');
-    this.add.sprite(464,16,'Tileset_Water').setOrigin(0,0).setDepth(10000+16).play('w5278');
-    this.add.sprite(480,16,'Tileset_Water').setOrigin(0,0).setDepth(10000+16).play('w5230');
-    this.add.sprite(496,16,'Tileset_Water').setOrigin(0,0).setDepth(10000+16).play('w5158');
-    this.add.sprite(512,16,'Tileset_Water').setOrigin(0,0).setDepth(10000+16).play('w5041');
-    this.add.sprite(464,32,'Tileset_Water').setOrigin(0,0).setDepth(10000+32).play('w5087');
-    this.add.sprite(480,32,'Tileset_Water').setOrigin(0,0).setDepth(10000+32).play('w5088');
-    this.add.sprite(496,32,'Tileset_Water').setOrigin(0,0).setDepth(10000+32).play('w5135');
-    this.add.sprite(512,32,'Tileset_Water').setOrigin(0,0).setDepth(10000+32).play('w5158');
-    this.add.sprite(528,32,'Tileset_Water').setOrigin(0,0).setDepth(10000+32).play('w5283');
-    this.add.sprite(544,32,'Tileset_Water').setOrigin(0,0).setDepth(10000+32).play('w5283');
-    this.add.sprite(560,32,'Tileset_Water').setOrigin(0,0).setDepth(10000+32).play('w5041');
-    this.add.sprite(496,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5087');
-    this.add.sprite(512,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5303');
-    this.add.sprite(528,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5135');
-    this.add.sprite(544,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5064');
-    this.add.sprite(560,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5158');
-    this.add.sprite(576,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5040');
-    this.add.sprite(592,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5040');
-    this.add.sprite(608,48,'Tileset_Water').setOrigin(0,0).setDepth(10000+48).play('w5041');
-    this.add.sprite(528,64,'Tileset_Water').setOrigin(0,0).setDepth(10000+64).play('w5087');
-    this.add.sprite(544,64,'Tileset_Water').setOrigin(0,0).setDepth(10000+64).play('w5088');
-    this.add.sprite(560,64,'Tileset_Water').setOrigin(0,0).setDepth(10000+64).play('w5135');
-    this.add.sprite(576,64,'Tileset_Water').setOrigin(0,0).setDepth(10000+64).play('w5064');
-    this.add.sprite(592,64,'Tileset_Water').setOrigin(0,0).setDepth(10000+64).play('w5064');
-    this.add.sprite(608,64,'Tileset_Water').setOrigin(0,0).setDepth(10000+64).play('w5158');
-    this.add.sprite(624,64,'Tileset_Water').setOrigin(0,0).setDepth(10000+64).play('w5283');
-    this.add.sprite(560,80,'Tileset_Water').setOrigin(0,0).setDepth(10000+80).play('w5087');
-    this.add.sprite(576,80,'Tileset_Water').setOrigin(0,0).setDepth(10000+80).play('w5307');
-    this.add.sprite(592,80,'Tileset_Water').setOrigin(0,0).setDepth(10000+80).play('w5088');
-    this.add.sprite(608,80,'Tileset_Water').setOrigin(0,0).setDepth(10000+80).play('w5135');
-    this.add.sprite(624,80,'Tileset_Water').setOrigin(0,0).setDepth(10000+80).play('w5230');
-    this.add.sprite(608,96,'Tileset_Water').setOrigin(0,0).setDepth(10000+96).play('w5087');
-    this.add.sprite(624,96,'Tileset_Water').setOrigin(0,0).setDepth(10000+96).play('w5088');
-    this.add.sprite(64,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5039');
-    this.add.sprite(80,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5040');
-    this.add.sprite(96,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5040');
-    this.add.sprite(112,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5305');
-    this.add.sprite(128,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5040');
-    this.add.sprite(144,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5040');
-    this.add.sprite(160,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5040');
-    this.add.sprite(176,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5040');
-    this.add.sprite(192,480,'Tileset_Water').setOrigin(0,0).setDepth(10000+480).play('w5041');
-    this.add.sprite(48,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5039');
-    this.add.sprite(64,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5159');
-    this.add.sprite(80,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5064');
-    this.add.sprite(96,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5231');
-    this.add.sprite(112,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5064');
-    this.add.sprite(128,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5232');
-    this.add.sprite(144,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5064');
-    this.add.sprite(160,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5232');
-    this.add.sprite(176,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5231');
-    this.add.sprite(192,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5158');
-    this.add.sprite(208,496,'Tileset_Water').setOrigin(0,0).setDepth(10000+496).play('w5041');
-    this.add.sprite(32,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5039');
-    this.add.sprite(48,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5159');
-    this.add.sprite(64,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5134');
-    this.add.sprite(80,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5088');
-    this.add.sprite(96,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5307');
-    this.add.sprite(112,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5303');
-    this.add.sprite(128,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5088');
-    this.add.sprite(144,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5303');
-    this.add.sprite(160,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5303');
-    this.add.sprite(176,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5135');
-    this.add.sprite(192,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5064');
-    this.add.sprite(208,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5158');
-    this.add.sprite(224,512,'Tileset_Water').setOrigin(0,0).setDepth(10000+512).play('w5041');
-    this.add.sprite(0,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5040');
-    this.add.sprite(16,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5040');
-    this.add.sprite(32,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5159');
-    this.add.sprite(48,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5134');
-    this.add.sprite(64,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5089');
-    this.add.sprite(176,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5087');
-    this.add.sprite(192,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5135');
-    this.add.sprite(208,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5232');
-    this.add.sprite(224,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5158');
-    this.add.sprite(240,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5041');
-    this.add.sprite(336,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5039');
-    this.add.sprite(352,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5040');
-    this.add.sprite(368,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5040');
-    this.add.sprite(384,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5305');
-    this.add.sprite(400,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5305');
-    this.add.sprite(416,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5040');
-    this.add.sprite(432,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5040');
-    this.add.sprite(448,528,'Tileset_Water').setOrigin(0,0).setDepth(10000+528).play('w5041');
-    this.add.sprite(0,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5231');
-    this.add.sprite(16,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5064');
-    this.add.sprite(32,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5134');
-    this.add.sprite(48,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5089');
-    this.add.sprite(192,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5087');
-    this.add.sprite(208,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5135');
-    this.add.sprite(224,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5230');
-    this.add.sprite(240,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5065');
-    this.add.sprite(320,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5039');
-    this.add.sprite(336,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5159');
-    this.add.sprite(352,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5064');
-    this.add.sprite(368,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5232');
-    this.add.sprite(384,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5231');
-    this.add.sprite(400,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5064');
-    this.add.sprite(416,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5064');
-    this.add.sprite(432,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5064');
-    this.add.sprite(448,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5158');
-    this.add.sprite(464,544,'Tileset_Water').setOrigin(0,0).setDepth(10000+544).play('w5041');
-    this.add.sprite(0,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5281');
-    this.add.sprite(16,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5088');
-    this.add.sprite(32,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5089');
-    this.add.sprite(208,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5063');
-    this.add.sprite(224,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5230');
-    this.add.sprite(240,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5158');
-    this.add.sprite(256,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5040');
-    this.add.sprite(272,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5279');
-    this.add.sprite(288,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5040');
-    this.add.sprite(304,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5279');
-    this.add.sprite(320,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5159');
-    this.add.sprite(336,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5064');
-    this.add.sprite(352,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5134');
-    this.add.sprite(368,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5281');
-    this.add.sprite(384,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5307');
-    this.add.sprite(400,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5281');
-    this.add.sprite(416,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5135');
-    this.add.sprite(432,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5231');
-    this.add.sprite(448,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5231');
-    this.add.sprite(464,560,'Tileset_Water').setOrigin(0,0).setDepth(10000+560).play('w5306');
-    this.add.sprite(208,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5087');
-    this.add.sprite(224,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5135');
-    this.add.sprite(240,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5064');
-    this.add.sprite(256,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5064');
-    this.add.sprite(272,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5232');
-    this.add.sprite(288,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5232');
-    this.add.sprite(304,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5232');
-    this.add.sprite(320,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5064');
-    this.add.sprite(336,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5134');
-    this.add.sprite(352,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5089');
-    this.add.sprite(416,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5087');
-    this.add.sprite(432,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5135');
-    this.add.sprite(448,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5232');
-    this.add.sprite(464,576,'Tileset_Water').setOrigin(0,0).setDepth(10000+576).play('w5280');
-    this.add.sprite(224,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5087');
-    this.add.sprite(240,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5281');
-    this.add.sprite(256,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5088');
-    this.add.sprite(272,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5088');
-    this.add.sprite(288,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5088');
-    this.add.sprite(304,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5088');
-    this.add.sprite(320,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5303');
-    this.add.sprite(336,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5089');
-    this.add.sprite(432,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5063');
-    this.add.sprite(448,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5230');
-    this.add.sprite(464,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5158');
-    this.add.sprite(480,592,'Tileset_Water').setOrigin(0,0).setDepth(10000+592).play('w5041');
-    this.add.sprite(432,608,'Tileset_Water').setOrigin(0,0).setDepth(10000+608).play('w5304');
-    this.add.sprite(448,608,'Tileset_Water').setOrigin(0,0).setDepth(10000+608).play('w5064');
-    this.add.sprite(464,608,'Tileset_Water').setOrigin(0,0).setDepth(10000+608).play('w5231');
-    this.add.sprite(480,608,'Tileset_Water').setOrigin(0,0).setDepth(10000+608).play('w5280');
-    this.add.sprite(432,624,'Tileset_Water').setOrigin(0,0).setDepth(10000+624).play('w5063');
-    this.add.sprite(448,624,'Tileset_Water').setOrigin(0,0).setDepth(10000+624).play('w5232');
-    this.add.sprite(464,624,'Tileset_Water').setOrigin(0,0).setDepth(10000+624).play('w5231');
-    this.add.sprite(480,624,'Tileset_Water').setOrigin(0,0).setDepth(10000+624).play('w5158');
-    this.add.sprite(496,624,'Tileset_Water').setOrigin(0,0).setDepth(10000+624).play('w5041');
-    for (const obj of OBJECTS) {
-      const key = obj.img.replace('.png','');
-      if (!this.textures.exists(key)) continue;
-      this.add.image(obj.x, obj.y, key)
-        .setOrigin(0, 1)
-        .setDisplaySize(obj.w, obj.h)
-        .setDepth(obj.y);
+        if (l) l.setDepth(i);
+      } catch(e) {}
     }
 
-    // ── Animations joueur ──
-    // Idle: 4 cols x 4 lignes — ordre réel : up=0, right=1, down=2, left=3
-    const DIRS = ['left','right','up','down'];
-    DIRS.forEach((dir, row) => {
-      this.anims.create({ key: 'idle_' + dir, frames: this.anims.generateFrameNumbers('char_idle',  { start: row*4, end: row*4+3 }), frameRate: 4,  repeat: -1 });
-      this.anims.create({ key: 'walk_' + dir, frames: this.anims.generateFrameNumbers('char_walk',  { start: row*4, end: row*4+3 }), frameRate: 8,  repeat: -1 });
-      this.anims.create({ key: 'slash_'+ dir, frames: this.anims.generateFrameNumbers('char_slash', { start: row*6, end: row*6+5 }), frameRate: 12, repeat: 0 });
-    });
-
-    // Spawn joueur
-    this._px = 5 * 16 + 8;
-    this._py = 10 * 16 + 8;
+    // Joueur
+    this._px     = this._spawnX;
+    this._py     = this._spawnY;
     this._facing = 'down';
     this._moving = false;
     this._shadow = this.add.graphics().setDepth(500);
 
+    // Créer les animations si besoin
+    if (!this.anims.exists('idle_left')) {
+      const DIRS = ['left','right','up','down'];
+      DIRS.forEach((dir, row) => {
+        this.anims.create({ key:'idle_'+dir, frames:this.anims.generateFrameNumbers('char_idle',{start:row*4,end:row*4+3}), frameRate:4, repeat:-1 });
+        this.anims.create({ key:'walk_'+dir, frames:this.anims.generateFrameNumbers('char_walk',{start:row*4,end:row*4+3}), frameRate:8, repeat:-1 });
+      });
+    }
+
     this._sprite = this.add.sprite(this._px, this._py, 'char_idle')
-      .setDepth(501)
-      .setScale(0.72)
-      .play('idle_down');
+      .setDepth(501).setScale(0.72).play('idle_down');
 
     // Caméra
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.cameras.main.setZoom(ZOOM);
     this.cameras.main.centerOn(this._px, this._py);
 
-    // Input
+    // Input clavier
     this._cursors = this.input.keyboard.createCursorKeys();
     this._keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     this._keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
@@ -851,77 +507,16 @@ class WorldMapScene extends Phaser.Scene {
     this._keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
     this._keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
 
+    // Bouton action
+    this._actionPressed = false;
+    this.input.keyboard.on('keydown-SPACE', () => { this._actionPressed = true; });
+    this.input.keyboard.on('keyup-SPACE',   () => { this._actionPressed = false; });
 
-    // ── D-pad tactile HTML (mobile) ──
-    const dpad = { up: false, down: false, left: false, right: false };
-    this._dpad = dpad;
-
-    const dpadEl = document.createElement('div');
-    dpadEl.id = 'dpad';
-    dpadEl.style.cssText = [
-      'position:fixed',
-      'left:20px',
-      'bottom:20px',
-      'width:192px',
-      'height:192px',
-      'pointer-events:none',
-      'z-index:9999',
-      'user-select:none',
-      '-webkit-user-select:none',
-    ].join(';');
-
-    const btnDefs = [
-      { dir:'up',    left:'64px',  top:'0px'   },
-      { dir:'down',  left:'64px',  top:'128px' },
-      { dir:'left',  left:'0px',   top:'64px'  },
-      { dir:'right', left:'128px', top:'64px'  },
-    ];
-    const arrows = { up:'▲', down:'▼', left:'◄', right:'►' };
-
-    btnDefs.forEach(({ dir, left, top }) => {
-      const btn = document.createElement('div');
-      btn.style.cssText = [
-        'position:absolute',
-        'width:60px',
-        'height:60px',
-        'left:' + left,
-        'top:' + top,
-        'background:rgba(0,0,0,0.35)',
-        'border-radius:50%',
-        'display:flex',
-        'align-items:center',
-        'justify-content:center',
-        'font-size:22px',
-        'color:rgba(240,224,160,0.9)',
-        'pointer-events:auto',
-        'touch-action:none',
-        '-webkit-tap-highlight-color:transparent',
-        'transition:background 0.1s',
-      ].join(';');
-      btn.textContent = arrows[dir];
-
-      btn.addEventListener('touchstart', e => {
-        e.preventDefault();
-        dpad[dir] = true;
-        btn.style.background = 'rgba(255,255,255,0.25)';
-      }, { passive: false });
-
-      const release = e => {
-        e.preventDefault();
-        dpad[dir] = false;
-        btn.style.background = 'rgba(0,0,0,0.35)';
-      };
-      btn.addEventListener('touchend',    release, { passive: false });
-      btn.addEventListener('touchcancel', release, { passive: false });
-
-      dpadEl.appendChild(btn);
-    });
-
-    // Ajouter le D-pad uniquement sur écran tactile (mobile/tablette)
-    // pointer:coarse = écran tactile, pointer:fine = souris
-    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
-    if (isTouchDevice) {
-      document.body.appendChild(dpadEl);
+    // D-pad HTML
+    this._dpad = window._dpad || { up:false, down:false, left:false, right:false, action:false };
+    if (!window._dpadCreated) {
+      this._createDpad();
+      window._dpadCreated = true;
     }
 
     // HUD
@@ -930,82 +525,203 @@ class WorldMapScene extends Phaser.Scene {
       backgroundColor:'#00000099', padding:{x:4,y:3}
     }).setScrollFactor(0).setDepth(1000);
 
-    this.add.text(
-      this.scale.width/2, this.scale.height-14,
-      'FLÈCHES · WASD · ZQSD',
-      {font:'8px monospace', fill:'#557744'}
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
+    // Zone label
+    this.add.text(this.scale.width/2, 16, zone.key, {
+      font:'10px monospace', fill:'#c8a030'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(1000);
 
-    // ── Multijoueur Firebase ──
-    this._otherPlayers = {};   // id -> { sprite, label, shadow, lastData }
+    // Multijoueur
+    this._otherPlayers = {};
     this._publishTimer = 0;
+    this._setupMultiplayer();
 
+    // Panneau noticeboard (spawn uniquement)
+    if (zone.hasNoticeboard) {
+      this._createNoticeboard();
+    }
+
+    // Fondu blanc sortant (blanc → transparent) si on arrive d'une transition
+    if (this._fromTransition) {
+      const W = this.scale.width, H = this.scale.height;
+      const rect = this.add.rectangle(W/2, H/2, W, H, 0xffffff, 1)
+        .setScrollFactor(0).setDepth(9998);
+      this.tweens.add({
+        targets: rect, alpha: 0, duration: 400, ease: 'Linear',
+        onComplete: () => rect.destroy()
+      });
+    }
+  }
+
+  _createDpad() {
+    const dpad = { up:false, down:false, left:false, right:false, action:false };
+    window._dpad = dpad;
+    this._dpad = dpad;
+
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+    if (!isTouchDevice) return;
+
+    // Supprimer l'ancien D-pad si existe
+    const old = document.getElementById('dpad');
+    if (old) old.remove();
+    const oldA = document.getElementById('btn-action');
+    if (oldA) oldA.remove();
+
+    const dpadEl = document.createElement('div');
+    dpadEl.id = 'dpad';
+    dpadEl.style.cssText = 'position:fixed;left:20px;bottom:20px;width:192px;height:192px;pointer-events:none;z-index:9999;user-select:none;-webkit-user-select:none;';
+
+    const btnDefs = [
+      { dir:'up', left:'64px', top:'0px' },
+      { dir:'down', left:'64px', top:'128px' },
+      { dir:'left', left:'0px', top:'64px' },
+      { dir:'right', left:'128px', top:'64px' },
+    ];
+    const arrows = { up:'▲', down:'▼', left:'◄', right:'►' };
+
+    btnDefs.forEach(({ dir, left, top }) => {
+      const btn = document.createElement('div');
+      btn.style.cssText = 'position:absolute;width:60px;height:60px;left:'+left+';top:'+top+';background:rgba(0,0,0,0.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(240,224,160,0.9);pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;transition:background 0.1s;';
+      btn.textContent = arrows[dir];
+      btn.addEventListener('touchstart', e => { e.preventDefault(); dpad[dir]=true; btn.style.background='rgba(255,255,255,0.25)'; }, {passive:false});
+      const rel = e => { e.preventDefault(); dpad[dir]=false; btn.style.background='rgba(0,0,0,0.35)'; };
+      btn.addEventListener('touchend', rel, {passive:false});
+      btn.addEventListener('touchcancel', rel, {passive:false});
+      dpadEl.appendChild(btn);
+    });
+    document.body.appendChild(dpadEl);
+
+    // Bouton Action (A)
+    const btnA = document.createElement('div');
+    btnA.id = 'btn-action';
+    btnA.style.cssText = 'position:fixed;right:24px;bottom:24px;width:64px;height:64px;background:rgba(200,160,48,0.35);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(240,224,160,0.9);z-index:9999;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;';
+    btnA.textContent = 'A';
+    btnA.addEventListener('touchstart', e => { e.preventDefault(); dpad.action=true; btnA.style.background='rgba(200,160,48,0.6)'; }, {passive:false});
+    const relA = e => { e.preventDefault(); dpad.action=false; btnA.style.background='rgba(200,160,48,0.35)'; };
+    btnA.addEventListener('touchend', relA, {passive:false});
+    btnA.addEventListener('touchcancel', relA, {passive:false});
+    document.body.appendChild(btnA);
+  }
+
+  _setupMultiplayer() {
     const myId = window.studentData ? window.studentData.id : null;
-    console.log('[MP] studentData:', window.studentData);
-    console.log('[MP] myId:', myId, '| _fbDb:', !!window._fbDb, '| _fbSet:', !!window._fbSet);
-    if (myId && window._fbDb) {
-      const db        = window._fbDb;
-      const fbRef     = window._fbRef;
-      const fbSet     = window._fbSet;
-      const fbOnValue = window._fbOnValue;
-      const fbOnDisc  = window._fbOnDisconnect;
+    if (!myId || !window._fbDb) return;
 
-      this._myPresenceRef = fbRef(db, `presence/${myId}`);
+    const db  = window._fbDb;
+    const fbRef = window._fbRef;
+    const scene = this;
 
-      // Supprimer la présence quand le joueur se déconnecte
-      fbOnDisc(this._myPresenceRef).remove();
+    this._myId = myId;
+    this._myPresenceRef = fbRef(db, 'presence/' + myId);
+    window._fbOnDisconnect(this._myPresenceRef).remove();
 
-      // Écouter tous les joueurs en temps réel
-      fbOnValue(fbRef(db, 'presence'), snap => {
-        const all = snap.val() || {};
-        const scene = this;
+    // Écouter les autres joueurs
+    window._fbOnValue(fbRef(db, 'presence'), snap => {
+      const all = snap.val() || {};
 
-        // Supprimer les joueurs qui ont quitté
-        for (const id of Object.keys(scene._otherPlayers)) {
-          if (!all[id]) {
+      // Supprimer joueurs partis
+      for (const id of Object.keys(scene._otherPlayers)) {
+        if (!all[id]) {
+          scene._otherPlayers[id].sprite.destroy();
+          scene._otherPlayers[id].label.destroy();
+          scene._otherPlayers[id].shadow.destroy();
+          delete scene._otherPlayers[id];
+        }
+      }
+
+      // Créer/màj joueurs présents dans la MÊME zone
+      for (const [id, data] of Object.entries(all)) {
+        if (id === myId) continue;
+        if (!data || data.zone !== scene._zoneKey) {
+          // Supprimer si dans une autre zone
+          if (scene._otherPlayers[id]) {
             scene._otherPlayers[id].sprite.destroy();
             scene._otherPlayers[id].label.destroy();
             scene._otherPlayers[id].shadow.destroy();
             delete scene._otherPlayers[id];
           }
+          continue;
         }
-
-        // Créer ou mettre à jour les autres joueurs
-        for (const [id, data] of Object.entries(all)) {
-          if (id === myId) continue;
-          if (!data) continue;
-
-          if (!scene._otherPlayers[id]) {
-            // Créer le sprite pour ce joueur
-            const shadow = scene.add.graphics().setDepth(500);
-            const sprite = scene.add.sprite(data.x, data.y, 'char_idle')
-              .setScale(0.72)
-              .setDepth(data.y + 1)
-              .play('idle_down');
-            const label = scene.add.text(data.x, data.y - 28, id.toUpperCase(), {
-              font: '8px monospace',
-              fill: '#ffffff',
-              stroke: '#000000',
-              strokeThickness: 3,
-              backgroundColor: null,
-            }).setOrigin(0.5).setDepth(data.y + 2);
-
-            scene._otherPlayers[id] = { sprite, label, shadow, lastData: data };
-          } else {
-            // Mettre à jour les données
-            scene._otherPlayers[id].lastData = data;
-          }
+        if (!scene._otherPlayers[id]) {
+          const shadow = scene.add.graphics().setDepth(500);
+          const sprite = scene.add.sprite(data.x, data.y, 'char_idle')
+            .setScale(0.72).setDepth(data.y+1).play('idle_down');
+          const label = scene.add.text(data.x, data.y-28, id.toUpperCase(), {
+            font:'8px monospace', fill:'#ffffff', stroke:'#000000', strokeThickness:3
+          }).setOrigin(0.5).setDepth(data.y+2);
+          scene._otherPlayers[id] = { sprite, label, shadow, lastData: data };
+        } else {
+          scene._otherPlayers[id].lastData = data;
         }
-      });
+      }
 
-      this._myId = myId;
-      this._fbSet = fbSet;
-    }
+      // Mettre à jour le panneau si spawn
+      if (scene._updateNoticeboard) scene._updateNoticeboard(all);
+    });
+  }
+
+  _createNoticeboard() {
+    // Panneau multijoueur interactif — visible quand on appuie sur A près du centre
+    this._noticeboardOpen = false;
+
+    // Indicateur visuel au panneau
+    const zone = ZONES[this._zoneKey];
+    const nx = zone.noticeboardX, ny = zone.noticeboardY;
+    const indicator = this.add.text(nx, ny - 20, '[ A ]', {
+      font:'8px monospace', fill:'#f0e0a0', backgroundColor:'#00000088', padding:{x:3,y:2}
+    }).setOrigin(0.5).setDepth(600);
+    this._noticeboardIndicator = indicator;
+
+    // Panel HTML par-dessus
+    const panel = document.createElement('div');
+    panel.id = 'noticeboard-panel';
+    panel.style.cssText = [
+      'position:fixed','top:50%','left:50%',
+      'transform:translate(-50%,-50%)',
+      'background:rgba(17,30,17,0.95)',
+      'border:2px solid #4a7a4a','border-radius:12px',
+      'padding:20px 24px','min-width:280px',
+      'font-family:monospace','color:#f0e0a0',
+      'z-index:9990','display:none',
+      'max-height:70vh','overflow-y:auto',
+    ].join(';');
+
+    panel.innerHTML = `
+      <div style="font-size:14px;font-weight:bold;margin-bottom:12px;color:#c8a030">⚔ Legion Status</div>
+      <div id="noticeboard-list" style="font-size:11px;line-height:1.8"></div>
+      <div style="margin-top:14px;text-align:center">
+        <button onclick="document.getElementById('noticeboard-panel').style.display='none'" 
+          style="background:#2a5a2a;border:1px solid #4a9a4a;border-radius:6px;color:#f0e0a0;font-family:monospace;padding:6px 16px;cursor:pointer">
+          Close
+        </button>
+      </div>
+    `;
+    document.body.appendChild(panel);
+    this._noticeboardPanel = panel;
+
+    this._updateNoticeboard = (allPresence) => {
+      const list = document.getElementById('noticeboard-list');
+      if (!list) return;
+      const entries = Object.entries(allPresence || {});
+      if (entries.length === 0) {
+        list.innerHTML = '<div style="color:#557744">No warriors online</div>';
+        return;
+      }
+      list.innerHTML = entries.map(([id, data]) => {
+        const zone  = data.zone || '?';
+        const isMe  = id === (window.studentData && window.studentData.id);
+        const color = isMe ? '#c8a030' : '#f0e0a0';
+        const zoneColor = { Spawn:'#88aa66', Nord:'#e05050', NordOuest:'#9080c0', Ouest:'#60a0d0', Sud:'#c8a030', SudSud:'#d08050' }[zone] || '#888';
+        return `<div style="display:flex;justify-content:space-between;gap:16px;padding:2px 0;">
+          <span style="color:${color}">⚔ ${id.toUpperCase()}${isMe?' (you)':''}</span>
+          <span style="color:${zoneColor}">[${zone}]</span>
+        </div>`;
+      }).join('');
+    };
   }
 
   _isDown(k) {
     const c = this._cursors;
-    const d = this._dpad;
+    const d = window._dpad || {};
     if (k==='up')    return c.up.isDown    || this._keyW.isDown || this._keyZ.isDown || d.up;
     if (k==='down')  return c.down.isDown  || this._keyS.isDown || d.down;
     if (k==='left')  return c.left.isDown  || this._keyA.isDown || this._keyQ.isDown || d.left;
@@ -1013,37 +729,22 @@ class WorldMapScene extends Phaser.Scene {
     return false;
   }
 
-  _isSolid(wx, wy) {
-    return isSolidGrid(wx, wy);
-  }
-
   _drawPlayer() {
     const s = this._shadow;
     s.clear();
     s.fillStyle(0x000000, 0.3);
-    s.fillEllipse(Math.round(this._px), Math.round(this._py) + 10, 14, 5);
-
-    // Mettre à jour position du sprite
+    s.fillEllipse(Math.round(this._px), Math.round(this._py)+10, 14, 5);
     this._sprite.setPosition(this._px, this._py);
-    this._sprite.setDepth(this._py + 1);
-
-    // Animation selon état
+    this._sprite.setDepth(this._py+1);
     const dir = this._facing;
-    if (this._moving) {
-      const walkKey = 'walk_' + dir;
-      if (this._sprite.anims.currentAnim && this._sprite.anims.currentAnim.key !== walkKey) {
-        this._sprite.play(walkKey);
-      }
-    } else {
-      const idleKey = 'idle_' + dir;
-      if (this._sprite.anims.currentAnim && this._sprite.anims.currentAnim.key !== idleKey) {
-        this._sprite.play(idleKey);
-      }
+    const key = (this._moving ? 'walk_' : 'idle_') + dir;
+    if (!this._sprite.anims.currentAnim || this._sprite.anims.currentAnim.key !== key) {
+      this._sprite.play(key);
     }
   }
 
   update(time, delta) {
-    const SPEED = 80, dt = Math.min(delta, 50), HIT = 5;
+    const SPEED=80, dt=Math.min(delta,50), HIT=5;
     let dx=0, dy=0;
     if (this._isDown('left'))  { dx=-1; this._facing='left'; }
     if (this._isDown('right')) { dx= 1; this._facing='right'; }
@@ -1052,83 +753,143 @@ class WorldMapScene extends Phaser.Scene {
     if (dx&&dy) { dx*=0.707; dy*=0.707; }
 
     const spd = SPEED*dt/1000;
-    const nx = this._px + dx*spd;
-    const ny = this._py + dy*spd;
-    const mW = this._map.widthInPixels;
-    const mH = this._map.heightInPixels;
+    const mW  = this._map.widthInPixels;
+    const mH  = this._map.heightInPixels;
+    const nx  = this._px + dx*spd;
+    const ny  = this._py + dy*spd;
 
-    if (!this._isSolid(nx-HIT, this._py) && !this._isSolid(nx+HIT, this._py))
-      this._px = Phaser.Math.Clamp(nx, HIT, mW-HIT);
-    if (!this._isSolid(this._px, ny-HIT) && !this._isSolid(this._px, ny+HIT))
-      this._py = Phaser.Math.Clamp(ny, HIT, mH-HIT);
-
+    this._px = Phaser.Math.Clamp(nx, HIT, mW-HIT);
+    this._py = Phaser.Math.Clamp(ny, HIT, mH-HIT);
     this._moving = dx!==0 || dy!==0;
 
-    // Caméra suit le joueur
+    // ── Transitions de zone ──
+    if (!this._transitioning) {
+      const zone = ZONES[this._zoneKey];
+      for (const tr of zone.transitions) {
+        if (tr.condition(this._px, this._py, mW, mH)) {
+          this._transitioning = true;
+          const targetCfg = ZONES[tr.targetZone];
+          // Publier position finale avant de partir
+          if (this._myId && window._fbSet) {
+            window._fbSet(window._fbRef(window._fbDb, 'presence/'+this._myId), {
+              x: Math.round(this._px), y: Math.round(this._py),
+              facing: this._facing, moving: 0, zone: tr.targetZone
+            });
+          }
+          this.scene.start('Transition', {
+            targetZone: tr.targetZone,
+            spawnX: targetCfg.spawnX,
+            spawnY: targetCfg.spawnY,
+          });
+          // Nettoyer le panneau si existe
+          const nb = document.getElementById('noticeboard-panel');
+          if (nb) nb.remove();
+          return;
+        }
+      }
+    }
+
+    // ── Bouton Action — noticeboard ──
+    const actionJustPressed = (this._actionPressed || (window._dpad && window._dpad.action)) && !this._prevAction;
+    this._prevAction = this._actionPressed || (window._dpad && window._dpad.action);
+
+    if (actionJustPressed && ZONES[this._zoneKey].hasNoticeboard) {
+      const zone = ZONES[this._zoneKey];
+      const dist = Phaser.Math.Distance.Between(this._px, this._py, zone.noticeboardX, zone.noticeboardY);
+      if (dist < 48) {
+        const panel = document.getElementById('noticeboard-panel');
+        if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    // Indicateur noticeboard visibility
+    if (this._noticeboardIndicator) {
+      const zone = ZONES[this._zoneKey];
+      const dist = Phaser.Math.Distance.Between(this._px, this._py, zone.noticeboardX, zone.noticeboardY);
+      this._noticeboardIndicator.setVisible(dist < 64);
+    }
+
     this.cameras.main.centerOn(this._px, this._py);
     this._drawPlayer();
+    this._hud.setText('['+this._zoneKey+'] ' + Math.floor(this._px/16)+','+Math.floor(this._py/16));
 
-    const T = 16;
-    this._hud.setText(`[${Math.floor(this._px/T)}, ${Math.floor(this._py/T)}]`);
-
-    // ── Publier position dans Firebase toutes les 100ms ──
-    if (this._myId && this._fbSet) {
-      this._publishTimer = (this._publishTimer || 0) + delta;
-      if (this._publishTimer >= 100) {
-        this._publishTimer = 0;
-        const payload = { x: Math.round(this._px), y: Math.round(this._py),
-            facing: this._facing, moving: this._moving ? 1 : 0 };
-        console.log('[MP] publishing:', payload);
-        this._fbSet(
-          window._fbRef(window._fbDb, 'presence/' + this._myId),
-          payload
-        );
-      }
+    // ── Publier position Firebase ──
+    this._publishTimer = (this._publishTimer||0) + delta;
+    if (this._myId && this._publishTimer >= 100) {
+      this._publishTimer = 0;
+      window._fbSet(
+        window._fbRef(window._fbDb, 'presence/'+this._myId),
+        { x:Math.round(this._px), y:Math.round(this._py), facing:this._facing, moving:this._moving?1:0, zone:this._zoneKey }
+      );
     }
 
-    // ── Interpoler et dessiner les autres joueurs ──
-    if (this._otherPlayers) {
-      for (const [id, p] of Object.entries(this._otherPlayers)) {
-        const d = p.lastData;
-        if (!d) continue;
-
-        // Interpolation douce vers la position cible
-        p.sprite.x = Phaser.Math.Linear(p.sprite.x, d.x, 0.2);
-        p.sprite.y = Phaser.Math.Linear(p.sprite.y, d.y, 0.2);
-        p.sprite.setDepth(p.sprite.y + 1);
-
-        // Animation selon état reçu
-        const dir    = d.facing || 'down';
-        const moving = d.moving === 1;
-        const target = (moving ? 'walk_' : 'idle_') + dir;
-        if (!p.sprite.anims.currentAnim || p.sprite.anims.currentAnim.key !== target) {
-          p.sprite.play(target);
-        }
-
-        // Ombre
-        p.shadow.clear();
-        p.shadow.fillStyle(0x000000, 0.3);
-        p.shadow.fillEllipse(p.sprite.x, p.sprite.y + 10, 14, 5);
-        p.shadow.setDepth(p.sprite.y);
-
-        // Label pseudo
-        p.label.setPosition(p.sprite.x, p.sprite.y - 28);
-        p.label.setDepth(p.sprite.y + 2);
-      }
+    // ── Autres joueurs ──
+    for (const [id, p] of Object.entries(this._otherPlayers)) {
+      const d = p.lastData;
+      if (!d) continue;
+      p.sprite.x = Phaser.Math.Linear(p.sprite.x, d.x, 0.2);
+      p.sprite.y = Phaser.Math.Linear(p.sprite.y, d.y, 0.2);
+      p.sprite.setDepth(p.sprite.y+1);
+      const dir    = d.facing||'down';
+      const moving = d.moving===1;
+      const target = (moving?'walk_':'idle_')+dir;
+      if (!p.sprite.anims.currentAnim||p.sprite.anims.currentAnim.key!==target) p.sprite.play(target);
+      p.shadow.clear();
+      p.shadow.fillStyle(0x000000,0.3);
+      p.shadow.fillEllipse(p.sprite.x, p.sprite.y+10, 14, 5);
+      p.shadow.setDepth(p.sprite.y);
+      p.label.setPosition(p.sprite.x, p.sprite.y-28);
+      p.label.setDepth(p.sprite.y+2);
     }
   }
+}
+
+// ── Zones concrètes ──
+class SpawnScene    extends BaseZoneScene { constructor() { super('Spawn'); } }
+class NordScene     extends BaseZoneScene { constructor() { super('Nord'); } }
+class NordOuestScene extends BaseZoneScene { constructor() { super('NordOuest'); } }
+class OuestScene    extends BaseZoneScene { constructor() { super('Ouest'); } }
+class SudScene      extends BaseZoneScene { constructor() { super('Sud'); } }
+class SudSudScene   extends BaseZoneScene { constructor() { super('SudSud'); } }
+
+
+
+// ── BootScene ──
+class BootScene extends Phaser.Scene {
+  constructor() { super('Boot'); }
+  preload() {
+    const W=this.scale.width, H=this.scale.height;
+    this.add.rectangle(W/2,H/2,320,36,0x111122);
+    const bar=this.add.rectangle(W/2-158,H/2,4,28,0xc8a030).setOrigin(0,0.5);
+    this.add.text(W/2,H/2-30,'Vocabulary Raid v2',{font:'14px monospace',fill:'#f0e0a0'}).setOrigin(0.5);
+    this.load.on('progress', v => { bar.width=316*v; });
+    // Précharger les sprites joueur communs
+    this.load.spritesheet('char_idle',  BASE+'Character_Idle.png',  {frameWidth:40,frameHeight:48});
+    this.load.spritesheet('char_walk',  BASE+'Character_Walk.png',  {frameWidth:40,frameHeight:48});
+    this.load.spritesheet('char_slash', BASE+'Character_Slash.png', {frameWidth:40,frameHeight:48});
+  }
+  create() { this.scene.start('Spawn'); }
 }
 
 // ── CONFIG ──
 window.startGame = function() {
   new Phaser.Game({
     type: Phaser.AUTO,
-    backgroundColor: '#2a3a1a',
+    backgroundColor: '#1a2a1a',
     pixelArt: true,
     input: { activePointers: 4 },
     antialias: false,
     parent: document.body,
-    scene: [BootScene, WorldMapScene],
+    scene: [
+      BootScene,
+      TransitionScene,
+      SpawnScene,
+      NordScene,
+      NordOuestScene,
+      OuestScene,
+      SudScene,
+      SudSudScene,
+    ],
     scale: {
       mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
