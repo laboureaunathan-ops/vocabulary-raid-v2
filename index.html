@@ -95,31 +95,103 @@ html, body { width:100%; height:100%; background:#98d987; overflow:hidden; }
 #quiz-submit:disabled { opacity:0.5; cursor:not-allowed; }
 #quiz-streak { font-size:10px; color:#f59e0b; margin-top:6px; }
 
-/* ── Lootbox modal ── */
+/* ── Lootbox chest ── */
 #lootbox-panel {
-  position:fixed; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  background:rgba(17,30,17,0.97);
-  border:2px solid #c8a030; border-radius:12px;
-  padding:24px 28px; min-width:280px; max-width:90vw;
-  font-family:monospace; color:#f0e0a0;
+  position:fixed; inset:0;
+  background:rgba(5,10,5,0.96);
   z-index:9992; display:none;
-  box-shadow:0 4px 24px rgba(0,0,0,0.8);
+  flex-direction:column; align-items:center; justify-content:center;
+  font-family:monospace; color:#f0e0a0;
   text-align:center;
+  overflow:hidden;
 }
-#lootbox-panel h3 { margin:0 0 16px; color:#c8a030; font-size:14px; }
-.loot-item {
-  padding:6px 10px; margin:4px 0; border-radius:6px;
-  border:1px solid #4a7a4a; font-size:12px;
+#lootbox-glow {
+  position:absolute; inset:0;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.6s ease;
 }
-.loot-common    { border-color:#aaa; }
-.loot-rare      { border-color:#4a9eff; color:#4a9eff; }
-.loot-epic      { border-color:#a855f7; color:#a855f7; }
-.loot-legendary { border-color:#f59e0b; color:#f59e0b; }
+#lootbox-title {
+  font-size:22px; font-weight:bold; color:#c8a030;
+  margin-bottom:16px; letter-spacing:2px;
+  text-shadow:0 0 20px rgba(200,160,48,0.8);
+  z-index:1;
+}
+#lootbox-chest-wrap {
+  position:relative;
+  width:264px; height:420px;
+  cursor:pointer; z-index:1;
+  filter:drop-shadow(0 0 24px rgba(200,160,48,0.6));
+  transition:transform 0.12s;
+  overflow:hidden;
+  flex-shrink:0;
+}
+#lootbox-chest-wrap:hover { transform:scale(1.06); }
+#lootbox-chest-wrap:active { transform:scale(0.96); }
+#lootbox-chest-img {
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+  width:1056px;
+  height:420px;
+  position:absolute;
+  top:0; left:0;
+  transition:left 0.15s steps(1);
+}
+@media (max-width:600px) {
+  #lootbox-chest-wrap { width:198px; height:315px; }
+  #lootbox-chest-img  { width:792px; height:315px; }
+}
+#lootbox-tap-hint {
+  font-size:13px; color:#88aa66; margin-top:16px; z-index:1;
+  animation: lbPulse 1.4s ease-in-out infinite;
+}
+@keyframes lbPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+#lootbox-reward {
+  display:none; z-index:1;
+  flex-direction:column; align-items:center; gap:10px;
+  animation:lbFadeIn 0.5s ease;
+}
+@keyframes lbFadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+#lootbox-reward-item {
+  font-size:22px; font-weight:bold; padding:12px 28px;
+  border-radius:12px; border:2px solid #c8a030;
+  background:rgba(30,20,0,0.7);
+  text-shadow:0 0 14px currentColor;
+}
+#lootbox-reward-sub {
+  font-size:12px; color:#88aa66; line-height:1.6;
+}
+.loot-item { display:none; } /* legacy, plus utilisé */
 #lootbox-close {
-  margin-top:14px; width:100%; padding:8px;
-  background:#2a5a2a; border:1px solid #4a9a4a; border-radius:6px;
-  color:#f0e0a0; font-family:monospace; cursor:pointer;
+  margin-top:18px; padding:10px 32px;
+  background:#2a5a2a; border:2px solid #4a9a4a; border-radius:8px;
+  color:#f0e0a0; font-family:monospace; font-size:14px; cursor:pointer;
+  display:none; z-index:1;
+}
+#lootbox-close:hover { background:#3a7a3a; }
+
+
+/* ── Hint d'interaction (HTML fixe, pas Phaser) ── */
+#world-hint {
+  position:fixed;
+  transform:translate(-50%, -100%);
+  background:rgba(10,18,10,0.93);
+  border:2px solid #c8a030;
+  border-radius:10px;
+  padding:8px 18px;
+  font-family:monospace;
+  font-size:15px;
+  font-weight:bold;
+  color:#f0e0a0;
+  pointer-events:none;
+  z-index:9997;
+  display:none;
+  white-space:nowrap;
+  box-shadow:0 3px 12px rgba(0,0,0,0.7);
+  letter-spacing:0.5px;
+}
+@media (max-width:600px) {
+  #world-hint { font-size:14px; padding:7px 14px; }
 }
 
 /* Slime hint */
@@ -163,9 +235,144 @@ html, body { width:100%; height:100%; background:#98d987; overflow:hidden; }
   padding:2px 5px; border-radius:4px;
   pointer-events:none; display:none;
 }
+
+/* ── Backpack panel ── */
+#backpack-panel {
+  position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(17,30,17,0.97);
+  border:2px solid #c8a030; border-radius:12px;
+  padding:20px 24px; min-width:260px; max-width:90vw;
+  max-height:80vh; overflow-y:auto;
+  font-family:monospace; color:#f0e0a0;
+  z-index:9993; display:none;
+  box-shadow:0 4px 24px rgba(0,0,0,0.8);
+}
+#backpack-panel h3 { margin:0 0 12px; color:#c8a030; font-size:14px; }
+.bp-row {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:12px; padding:5px 0; font-size:12px;
+  border-bottom:1px solid #2a4a2a;
+}
+.bp-mat { color:#f0e0a0; }
+.bp-qty { color:#c8a030; font-weight:bold; font-size:14px; }
+.bp-empty { color:#557744; font-size:11px; text-align:center; padding:10px 0; }
+.bp-close {
+  margin-top:14px; width:100%; padding:8px;
+  background:#2a5a2a; border:1px solid #4a9a4a; border-radius:6px;
+  color:#f0e0a0; font-family:monospace; cursor:pointer;
+}
+
+/* ── Objectives panel ── */
+#objectives-panel {
+  position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(17,30,17,0.97);
+  border:2px solid #4a7a4a; border-radius:12px;
+  padding:20px 24px; min-width:280px; max-width:90vw;
+  max-height:80vh; overflow-y:auto;
+  font-family:monospace; color:#f0e0a0;
+  z-index:9993; display:none;
+  box-shadow:0 4px 24px rgba(0,0,0,0.8);
+}
+#objectives-panel h3 { margin:0 0 12px; color:#a0d060; font-size:14px; }
+.obj-row {
+  display:flex; gap:10px; align-items:flex-start;
+  padding:6px 0; font-size:11px;
+  border-bottom:1px solid #2a4a2a; line-height:1.5;
+}
+.obj-icon { font-size:14px; flex-shrink:0; }
+.obj-text { color:#f0e0a0; }
+.obj-cost { color:#c8a030; font-size:10px; margin-top:2px; }
+
+
+/* ── Happiness bar ── */
+#happiness-bar {
+  position:fixed; top:12px; left:12px;
+  z-index:9998; pointer-events:none;
+  display:flex; flex-direction:column; gap:5px;
+  background:rgba(10,20,10,0.82);
+  border:2px solid #4a7a4a; border-radius:10px;
+  padding:8px 12px; min-width:200px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.6);
+}
+#happiness-label {
+  font-family:monospace; font-size:13px; color:#f0e0a0;
+  font-weight:bold; letter-spacing:0.5px;
+}
+#happiness-track {
+  width:100%; height:14px;
+  background:rgba(0,0,0,0.5);
+  border:1px solid #4a7a4a; border-radius:7px;
+  overflow:hidden;
+}
+#happiness-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg, #e05050 0%, #f59e0b 50%, #4adb6a 100%);
+  border-radius:7px;
+  transition:width 0.5s ease;
+}
+@media (max-width: 600px) {
+  #happiness-bar { top:8px; left:8px; min-width:160px; padding:6px 10px; }
+  #happiness-label { font-size:12px; }
+  #happiness-track { height:12px; }
+}
+.obj-category {
+  font-size:10px; font-weight:bold; letter-spacing:1px;
+  color:#88aa66; text-transform:uppercase;
+  padding:8px 0 4px; border-bottom:1px solid #3a6a3a;
+  margin-bottom:2px;
+}
+.obj-empty {
+  font-size:10px; color:#557744; text-align:center;
+  padding:10px 0; line-height:1.6;
+}
+.obj-close {
+  margin-top:14px; width:100%; padding:8px;
+  background:#2a5a2a; border:1px solid #4a9a4a; border-radius:6px;
+  color:#f0e0a0; font-family:monospace; cursor:pointer;
+}
+
+/* ── Boutons HUD mobile ── */
+#hud-btn-backpack, #hud-btn-noticeboard, #hud-btn-objectives {
+  position:fixed; right:24px;
+  width:52px; height:52px;
+  background:rgba(17,30,17,0.92);
+  border:2px solid #4a9a4a; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; z-index:99999; cursor:pointer;
+  touch-action:none; -webkit-tap-highlight-color:transparent;
+  transition:background 0.12s;
+  user-select:none; -webkit-user-select:none;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+#hud-btn-backpack    { bottom:96px; }
+#hud-btn-objectives  { bottom:216px; }
+#hud-btn-noticeboard { bottom:156px; }
+#hud-btn-backpack:hover, #hud-btn-noticeboard:hover, #hud-btn-objectives:hover {
+  background:rgba(30,60,30,0.95); border-color:#6aba6a;
+}
+#hud-btn-backpack:active, #hud-btn-noticeboard:active, #hud-btn-objectives:active {
+  background:rgba(42,90,42,0.9);
+}
+#objectives-hint {
+  position:absolute; pointer-events:none;
+  background:rgba(0,0,0,0.75); color:#f0e0a0;
+  font-size:8px; font-family:monospace;
+  padding:2px 5px; border-radius:4px; display:none;
+}
 </style>
 </head>
 <body>
+
+
+<!-- ── Happiness bar ── -->
+<div id="happiness-bar">
+  <div id="happiness-label">😊 Happiness: 0%</div>
+  <div id="happiness-track"><div id="happiness-fill"></div></div>
+</div>
+
+<div id="world-hint"></div>
 
 <!-- ── Login screen ── -->
 <div id="loginScreen">
@@ -300,6 +507,31 @@ $('loginInput').addEventListener('keydown', e => { if (e.key === 'Enter') handle
 $('pinInput').addEventListener('keydown',   e => { if (e.key === 'Enter') handleStep2(); });
 </script>
 
+
+<!-- ── Backpack panel ── -->
+<div id="backpack-panel">
+  <h3>🎒 Backpack</h3>
+  <div id="backpack-list"></div>
+  <button class="bp-close" onclick="document.getElementById('backpack-panel').style.display='none'">Close [ ⚔ ]</button>
+</div>
+
+<!-- ── Objectives panel ── -->
+<div id="objectives-panel">
+  <h3>🏗 Reconstruction Objectives</h3>
+  <div id="objectives-list">
+    <div class="obj-category">⚔ Global Objectives</div>
+    <div class="obj-row"><span class="obj-icon">🏰</span><div><div class="obj-text">Repair the Castle Gate</div><div class="obj-cost">Cost: 20 Wood · 10 Stone · 5 Iron</div></div></div>
+    <div class="obj-row"><span class="obj-icon">🌉</span><div><div class="obj-text">Rebuild the Bridge</div><div class="obj-cost">Cost: 15 Wood · 8 Stone</div></div></div>
+    <div class="obj-row"><span class="obj-icon">⛲</span><div><div class="obj-text">Restore the Fountain</div><div class="obj-cost">Cost: 12 Stone · 3 Gold · 2 Scrolls</div></div></div>
+    <div class="obj-row"><span class="obj-icon">🏘</span><div><div class="obj-text">Reconstruct the Village Hall</div><div class="obj-cost">Cost: 30 Wood · 15 Stone · 5 Gold</div></div></div>
+    <div class="obj-row"><span class="obj-icon">⚗️</span><div><div class="obj-text">Restore the Alchemist Tower</div><div class="obj-cost">Cost: 10 Iron · 8 Scrolls · 5 Gold</div></div></div>
+    <div class="obj-row"><span class="obj-icon">🌿</span><div><div class="obj-text">Replant the Herb Gardens</div><div class="obj-cost">Cost: 20 Herbs · 5 Gold</div></div></div>
+    <div class="obj-category" style="margin-top:12px">🏡 Citizen Objectives</div>
+    <div class="obj-empty">No citizen objectives available yet.<br>Citizens will unlock soon…</div>
+  </div>
+  <button class="obj-close" onclick="document.getElementById('objectives-panel').style.display='none'">Close [ E ]</button>
+</div>
+
 <!-- ── Noticeboard panel ── -->
 <div id="noticeboard-panel">
   <h3>⚔ Legion Status</h3>
@@ -322,12 +554,33 @@ $('pinInput').addEventListener('keydown',   e => { if (e.key === 'Enter') handle
 
 <!-- ── Lootbox panel ── -->
 <div id="lootbox-panel">
-  <h3>🎁 Session Complete!</h3>
-  <div id="lootbox-content"></div>
-  <button id="lootbox-close">Claim rewards!</button>
+  <div id="lootbox-glow"></div>
+  <div id="lootbox-title">🎁 Session Complete!</div>
+  <div id="lootbox-chest-wrap" id="lootbox-chest-btn">
+    <img id="lootbox-chest-img" src="" alt="chest">
+  </div>
+  <div id="lootbox-tap-hint">Tap the chest to open!</div>
+  <div id="lootbox-reward">
+    <div id="lootbox-reward-item"></div>
+    <div id="lootbox-reward-sub"></div>
+  </div>
+  <button id="lootbox-close">Claim ⚔</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.87.0/dist/phaser.min.js"></script>
+
+<script>
+// ── Fix clavier Phaser : libérer les inputs HTML ──
+// Intercepte keydown en phase capture AVANT que Phaser ne l'annule
+document.addEventListener('keydown', function(e) {
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') {
+    e.stopImmediatePropagation();
+    // Ne pas appeler preventDefault pour laisser l'input recevoir la touche
+  }
+}, true); // true = phase capture, avant les listeners normaux
+</script>
+
 <script>
 const BASE = "https://laboureaunathan-ops.github.io/vocabulary-raid-v2/";
 
@@ -369,6 +622,106 @@ function _rollLootbox() {
   return LOOTBOX_REWARDS[0];
 }
 
+
+function _openBackpack() {
+  const inv = (window.studentData && window.studentData.inventory) || {};
+  const MAT_LABELS = {
+    wood:'🪵 Wood', stone:'🪨 Stone', herb:'🌿 Herbs',
+    gold:'🪙 Gold', iron:'⚙️ Iron', scroll:'📜 Scrolls'
+  };
+  const list = document.getElementById('backpack-list');
+  const keys = Object.keys(inv).filter(k => inv[k] > 0);
+  if (keys.length === 0) {
+    list.innerHTML = '<div class="bp-empty">Your backpack is empty.<br>Defeat slimes to earn resources!</div>';
+  } else {
+    list.innerHTML = keys.map(k =>
+      '<div class="bp-row"><span class="bp-mat">' + (MAT_LABELS[k]||k) + '</span>' +
+      '<span class="bp-qty">×' + inv[k] + '</span></div>'
+    ).join('');
+  }
+  document.getElementById('backpack-panel').style.display = 'block';
+}
+
+
+
+
+function _showWorldHint(worldX, worldY, text, cam, zoom, screenW, screenH) {
+  const el = document.getElementById('world-hint');
+  if (!el) return;
+  // Convertir coordonnées monde → écran
+  const sx = (worldX - cam.scrollX) * zoom + screenW / 2 - cam.width * zoom / 2;
+  const sy = (worldY - cam.scrollY) * zoom + screenH / 2 - cam.height * zoom / 2 - 18 * zoom;
+  el.style.left = sx + 'px';
+  el.style.top  = sy + 'px';
+  el.textContent = text;
+  el.style.display = 'block';
+}
+function _hideWorldHint() {
+  const el = document.getElementById('world-hint');
+  if (el) el.style.display = 'none';
+}
+function _showDialog(msg) {
+  const existing = document.getElementById('dialog-panel');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'dialog-panel';
+  el.style.cssText = [
+    'position:fixed','top:50%','left:50%',
+    'transform:translate(-50%,-50%)',
+    'background:rgba(17,30,17,0.97)',
+    'border:2px solid #4a7a4a','border-radius:12px',
+    'padding:20px 24px','min-width:240px','max-width:85vw',
+    'font-family:monospace','color:#f0e0a0',
+    'z-index:99999','text-align:center',
+    'box-shadow:0 4px 24px rgba(0,0,0,0.8)',
+    'white-space:pre-line','font-size:13px','line-height:1.6',
+  ].join(';');
+  const txt = document.createElement('div');
+  txt.textContent = msg;
+  const btn = document.createElement('button');
+  btn.textContent = 'Close [ E ]';
+  btn.style.cssText = 'margin-top:14px;width:100%;padding:8px;background:#2a5a2a;border:1px solid #4a9a4a;border-radius:6px;color:#f0e0a0;font-family:monospace;cursor:pointer;font-size:12px;';
+  btn.onclick = () => el.remove();
+  el.appendChild(txt);
+  el.appendChild(btn);
+  document.body.appendChild(el);
+}
+async function _openChest(chestId, chestObj) {
+  // Vérifier Firebase si déjà ouvert
+  const myId = window.studentData ? window.studentData.id : null;
+  if (!myId) return;
+
+  // Vérifier localement d'abord (cache)
+  if (window.studentData.chestsOpened && window.studentData.chestsOpened[chestId]) {
+    return; // déjà ouvert, hint déjà masqué
+  }
+
+  // Marquer comme ouvert localement et dans Firebase
+  window.studentData.chestsOpened = window.studentData.chestsOpened || {};
+  window.studentData.chestsOpened[chestId] = true;
+
+  // Ajouter 10 gold
+  window.studentData.inventory = window.studentData.inventory || {};
+  window.studentData.inventory.gold = (window.studentData.inventory.gold || 0) + 10;
+
+  if (window._fbUpdate && window._fbRef && window._fbDb) {
+    await window._fbUpdate(
+      window._fbRef(window._fbDb, 'students/' + myId),
+      {
+        ['chestsOpened/' + chestId]: true,
+        ['inventory/gold']: window.studentData.inventory.gold
+      }
+    );
+  }
+
+  // Afficher le sprite coffre grand ouvert
+  if (chestObj && chestObj.openSprite) {
+    chestObj.openSprite.setFrame(3);
+    chestObj.openSprite.setVisible(true);
+  }
+
+  _showDialog('🎁 You found a chest!\n+10 🪙 Gold added to your backpack.');
+}
 function _normalize(s) {
   return (s||'').toLowerCase().trim()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -2212,6 +2565,14 @@ class BootScene extends Phaser.Scene {
     // ── Carte PNG statique ──
     this.load.image('map_bg', BASE + 'Final.png');
 
+    // ── Feux de bâtiments ──
+    this.load.spritesheet('fire_01', BASE + 'Fire_01.png', { frameWidth:64, frameHeight:64 });
+    this.load.spritesheet('fire_02', BASE + 'Fire_02.png', { frameWidth:64, frameHeight:64 });
+    this.load.spritesheet('fire_03', BASE + 'Fire_03.png', { frameWidth:64, frameHeight:64 });
+
+    // Coffre ouvert (frame 3 du spritesheet Animation_Chest_Gold_3.png)
+    this.load.spritesheet('chest_anim', BASE + 'Animation_Chest_Gold_3.png', { frameWidth:66, frameHeight:105 });
+
     // ── Sprites animés (fleurs, campfire, eau) ──
     this.load.spritesheet('Tileset_Water',        BASE + 'Tileset_Water.png', { frameWidth:16, frameHeight:16 });
     this.load.spritesheet('Animation_Campfire',  BASE + 'Animation_Campfire.png', { frameWidth:16, frameHeight:16 });
@@ -2564,6 +2925,90 @@ class WorldMapScene extends Phaser.Scene {
     this.add.sprite(480,624,'Tileset_Water').setOrigin(0,0).setDepth(624).play('w5158');
     this.add.sprite(496,624,'Tileset_Water').setOrigin(0,0).setDepth(624).play('w5041');
 
+
+    // ── Animations feu ──
+    this.anims.create({ key:'fire_01', frames: this.anims.generateFrameNumbers('fire_01', { start:0, end:7  }), frameRate:12, repeat:-1 });
+    this.anims.create({ key:'fire_02', frames: this.anims.generateFrameNumbers('fire_02', { start:0, end:9  }), frameRate:12, repeat:-1 });
+    this.anims.create({ key:'fire_03', frames: this.anims.generateFrameNumbers('fire_03', { start:0, end:11 }), frameRate:12, repeat:-1 });
+
+    // ── Bâtiments avec feu (Firebase-driven) ──
+    const FIRE_KEYS = ['fire_01', 'fire_02', 'fire_03'];
+    this._fireBuildings = {
+      'building_70_119': {
+        // 28 tuiles — cols 70-74, rows 119-124 (-8 tuiles verticalement)
+        allPoints: [
+          {x:1144,y:1880,depth:1872},{x:1160,y:1880,depth:1872},{x:1176,y:1880,depth:1872},{x:1128,y:1896,depth:1888},{x:1144,y:1896,depth:1888},
+          {x:1160,y:1896,depth:1888},{x:1176,y:1896,depth:1888},{x:1192,y:1896,depth:1888},{x:1128,y:1912,depth:1904},{x:1144,y:1912,depth:1904},
+          {x:1160,y:1912,depth:1904},{x:1176,y:1912,depth:1904},{x:1192,y:1912,depth:1904},{x:1128,y:1928,depth:1920},{x:1144,y:1928,depth:1920},
+          {x:1160,y:1928,depth:1920},{x:1176,y:1928,depth:1920},{x:1192,y:1928,depth:1920},{x:1128,y:1944,depth:1936},{x:1144,y:1944,depth:1936},
+          {x:1160,y:1944,depth:1936},{x:1176,y:1944,depth:1936},{x:1192,y:1944,depth:1936},{x:1128,y:1960,depth:1952},{x:1144,y:1960,depth:1952},
+          {x:1160,y:1960,depth:1952},{x:1176,y:1960,depth:1952},{x:1192,y:1960,depth:1952},
+        ],
+        sprites: [],
+        timers: [],
+      },
+    };
+
+    if (window._fbOnValue && window._fbRef && window._fbDb) {
+      window._fbOnValue(window._fbRef(window._fbDb, 'kingdom/fires'), snap => {
+        const fires = snap.val() || {};
+        for (const [id, data] of Object.entries(this._fireBuildings)) {
+          const isOnFire = fires[id] === true;
+          if (isOnFire && data.sprites.length === 0) {
+
+            // Spawn une flamme individuelle sur une tuile aléatoire libre
+            const spawnOne = () => {
+              // Choisir une tuile pas encore occupée
+              const used = new Set(data.sprites.map(s => s._tileIdx));
+              const free = data.allPoints
+                .map((p, i) => ({ p, i }))
+                .filter(({ i }) => !used.has(i));
+              if (free.length === 0 || data.sprites.length >= 5) return;
+              const { p, i } = free[Math.floor(Math.random() * free.length)];
+              const key   = FIRE_KEYS[Math.floor(Math.random() * 3)];
+              const offX  = (Math.random() - 0.5) * 6;
+              const offY  = (Math.random() - 0.5) * 6;
+              const scale = 0.8 + Math.random() * 0.6;
+              const s = this.add.sprite(p.x + offX, p.y + offY, key)
+                .setOrigin(0.5, 0.5)
+                .setDepth(p.depth + 1)
+                .setScale(scale);
+              s._tileIdx = i;
+              s.play(key);
+              data.sprites.push(s);
+
+              // Durée de vie aléatoire 1.5–4s avant extinction
+              const life = 1500 + Math.random() * 2500;
+              const t = this.time.delayedCall(life, () => {
+                if (s.active) s.destroy();
+                data.sprites = data.sprites.filter(x => x !== s);
+                // Respawner une nouvelle flamme après un court délai
+                if (data.sprites.length < 5 && data.running) {
+                  const gap = 300 + Math.random() * 700;
+                  data.timers.push(this.time.delayedCall(gap, spawnOne));
+                }
+              });
+              data.timers.push(t);
+            };
+
+            data.running = true;
+            // Démarrer 5 flammes avec délais décalés
+            for (let k = 0; k < 5; k++) {
+              const d = k * 300 + Math.random() * 200;
+              data.timers.push(this.time.delayedCall(d, spawnOne));
+            }
+
+          } else if (!isOnFire && (data.sprites.length > 0 || data.timers.length > 0)) {
+            data.running = false;
+            data.timers.forEach(t => t.destroy());
+            data.timers = [];
+            data.sprites.forEach(s => { if (s.active) s.destroy(); });
+            data.sprites = [];
+          }
+        }
+      });
+    }
+
     // ── Animations joueur ──
     // Idle: 4 cols x 4 lignes — ordre réel : up=0, right=1, down=2, left=3
     const DIRS = ['left','right','up','down'];
@@ -2603,12 +3048,81 @@ class WorldMapScene extends Phaser.Scene {
     this._keyAction = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this._keyE      = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this._actionJustPressed = false;
-    this.input.keyboard.on('keydown-SPACE', () => { this._actionJustPressed = true; });
-    this.input.keyboard.on('keydown-E',     () => { this._actionJustPressed = true; });
+    this.input.keyboard.on('keydown-SPACE', () => {
+      const quizOpen   = document.getElementById('quiz-panel').style.display === 'block';
+      const dialogOpen = !!document.getElementById('dialog-panel');
+      if (!quizOpen && !dialogOpen) this._actionJustPressed = true;
+    });
+    this.input.keyboard.on('keydown-E', () => {
+      const quizOpen   = document.getElementById('quiz-panel').style.display === 'block';
+      const dialogOpen = !!document.getElementById('dialog-panel');
+      if (!quizOpen && !dialogOpen) this._actionJustPressed = true;
+    });
+
+    // Touche B → Backpack
+    this._keyB = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+    this.input.keyboard.on('keydown-B', () => _openBackpack());
+
+    // Point d'interaction Objectifs (tuile 75/99)
+    this._objectivesX = 75 * 16 + 8;  // 1208
+    this._objectivesY = 99 * 16 + 8;  // 1592
+
+
+    // ── PNJ 73/127 ──
+    this._npcX = 73 * 16 + 8;  // 1176
+    this._npcY = 127 * 16 + 8; // 2040
+    this._npcHint = this.add.text(
+      this._npcX, this._npcY - 20, '[ E ] Talk', {
+        font:'7px monospace', fill:'#a0d060',
+        backgroundColor:'#00000088', padding:{x:2,y:1}
+      }
+    ).setOrigin(0.5).setDepth(2000).setVisible(false);
+    this._npcTalked = false;
+
+    // ── Coffres interactifs ──
+    // Charger chestsOpened depuis Firebase au démarrage
+    if (window.studentData && window.studentData.chestsOpened) {
+      // déjà chargé via onValue listener
+    }
+    this._chests = [
+      { col:73,  row:180, id:'chest_73_180' },
+      { col:82,  row:165, id:'chest_82_165' },
+      { col:96,  row:86,  id:'chest_96_86'  },
+      { col:11,  row:105, id:'chest_11_105' },
+      { col:105, row:121, id:'chest_105_121'},
+    ].map(c => {
+      const x = c.col * 16 + 8;
+      const y = c.row * 16 + 8;
+      const alreadyOpen = window.studentData && window.studentData.chestsOpened &&
+                          window.studentData.chestsOpened[c.id];
+      // Sprite coffre ouvert (frame 3 du spritesheet, affiché si déjà ouvert)
+      // Sprite coffre grand ouvert = frame 3 du spritesheet
+      const openSprite = this.add.sprite(x, y, 'chest_anim', 3)
+        .setOrigin(0.5, 1).setDepth(y + 1)
+        .setScale(1)
+        .setVisible(!!alreadyOpen);
+      return {
+        ...c, x, y,
+        openSprite,
+        hint: this.add.text(x, y - 14, '[ E ] Open', {
+          font:'7px monospace', fill:'#c8a030',
+          backgroundColor:'#00000088', padding:{x:2,y:1}
+        }).setOrigin(0.5).setDepth(2000).setVisible(false),
+      };
+    });
+
+    this._objHint = this.add.text(
+      this._objectivesX, this._objectivesY - 24,
+      '[ E ] Objectives', {
+        font:'8px monospace', fill:'#a0d060',
+        backgroundColor:'#00000088', padding:{x:3,y:2}
+      }
+    ).setOrigin(0.5).setDepth(1001).setVisible(false);
+
 
     // Hint "[E]" au-dessus du noticeboard (position du BulletinBoard)
-    this._noticeboardX = 1024; // centre carte (64*16)
-    this._noticeboardY = 1664; // centre carte (104*16)
+    this._noticeboardX = 1256; // tuile 78*16+8
+    this._noticeboardY = 1640; // tuile 102*16+8
     this._nbHint = this.add.text(
       this._noticeboardX, this._noticeboardY - 24,
       '[ E ]', {
@@ -2618,6 +3132,14 @@ class WorldMapScene extends Phaser.Scene {
     ).setOrigin(0.5).setDepth(1001).setVisible(false);
 
 
+
+    // Exposer contrôle clavier Phaser pour le quiz
+    window._phaserKeyboardDisable = () => {
+      this.input.keyboard.disableGlobalCapture();
+    };
+    window._phaserKeyboardEnable = () => {
+      this.input.keyboard.enableGlobalCapture();
+    };
     // ── D-pad tactile HTML (mobile) ──
     const dpad = { up: false, down: false, left: false, right: false };
     this._dpad = dpad;
@@ -2704,7 +3226,7 @@ class WorldMapScene extends Phaser.Scene {
         'font-family:monospace', 'font-weight:bold',
         'transition:background 0.1s',
       ].join(';');
-      btnA.textContent = 'A';
+      btnA.textContent = 'B';
       btnA.addEventListener('touchstart', e => {
         e.preventDefault();
         this._actionJustPressed = true;
@@ -2717,7 +3239,44 @@ class WorldMapScene extends Phaser.Scene {
       btnA.addEventListener('touchend',    relA, { passive: false });
       btnA.addEventListener('touchcancel', relA, { passive: false });
       document.body.appendChild(btnA);
+
     }
+
+
+    // ── Boutons HUD permanents (backpack + noticeboard) ──
+    const btnBP = document.createElement('div');
+    btnBP.id = 'hud-btn-backpack';
+    btnBP.textContent = '🎒';
+    btnBP.addEventListener('click',      () => _openBackpack());
+    btnBP.addEventListener('touchstart', e => { e.preventDefault(); _openBackpack(); }, { passive:false });
+    document.body.appendChild(btnBP);
+
+
+    const btnOBJ = document.createElement('div');
+    btnOBJ.id = 'hud-btn-objectives';
+    btnOBJ.textContent = '🏰';
+    btnOBJ.addEventListener('click', () => {
+      document.getElementById('objectives-panel').style.display = 'block';
+    });
+    btnOBJ.addEventListener('touchstart', e => {
+      e.preventDefault();
+      document.getElementById('objectives-panel').style.display = 'block';
+    }, { passive:false });
+    document.body.appendChild(btnOBJ);
+
+    const btnNB = document.createElement('div');
+    btnNB.id = 'hud-btn-noticeboard';
+    btnNB.textContent = '📋';
+    btnNB.addEventListener('click', () => {
+      const panel = document.getElementById('noticeboard-panel');
+      if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+    btnNB.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const panel = document.getElementById('noticeboard-panel');
+      if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }, { passive:false });
+    document.body.appendChild(btnNB);
 
     // HUD
     this._hud = this.add.text(8, 8, '', {
@@ -2741,8 +3300,8 @@ class WorldMapScene extends Phaser.Scene {
     this.anims.create({ key:'slime_death', frames:this.anims.generateFrameNumbers('slime_death',{start:0,end:27}), frameRate:8, repeat:0 });
 
     // ── Spawn du Slime (à côté du BulletinBoard) ──
-    this._slimeX    = 1064;
-    this._slimeY    = 1704;
+    this._slimeX    = 73 * 16 + 8;
+    this._slimeY    = 103 * 16 + 8;
     this._slimeFacing = 'down';
     this._slimeMoveTimer = 0;
     this._slimeMoveDir   = { dx:0, dy:0 };
@@ -2775,6 +3334,19 @@ class WorldMapScene extends Phaser.Scene {
 
       // Supprimer la présence quand le joueur se déconnecte
       fbOnDisc(this._myPresenceRef).remove();
+
+      // ── Happiness bar ──
+      window._fbOnValue(window._fbRef(window._fbDb, 'kingdom/happiness/points'), snap => {
+        const val = Math.min(100, Math.max(0, snap.val() || 0));
+        const fill  = document.getElementById('happiness-fill');
+        const label = document.getElementById('happiness-label');
+        if (fill)  fill.style.width = val + '%';
+        if (label) {
+          const emoji = val >= 70 ? '😊' : val >= 40 ? '😐' : '😟';
+          label.textContent = emoji + ' Happiness: ' + val + '%';
+        }
+      });
+
 
       // Écouter tous les joueurs en temps réel
       fbOnValue(fbRef(db, 'presence'), snap => {
@@ -2843,12 +3415,17 @@ class WorldMapScene extends Phaser.Scene {
   }
 
   _isDown(k) {
+    // Bloquer le mouvement si le quiz est explicitement ouvert
+    const quizEl = document.getElementById('quiz-panel');
+    const quizOpen = quizEl && quizEl.style.display === 'block';
+    if (quizOpen) return false;
     const c = this._cursors;
     const d = this._dpad;
-    if (k==='up')    return c.up.isDown    || this._keyW.isDown || this._keyZ.isDown || d.up;
-    if (k==='down')  return c.down.isDown  || this._keyS.isDown || d.down;
-    if (k==='left')  return c.left.isDown  || this._keyA.isDown || this._keyQ.isDown || d.left;
-    if (k==='right') return c.right.isDown || this._keyD.isDown || d.right;
+    // Flèches + d-pad mobile uniquement (WASD/ZQSD retirés pour éviter conflits clavier)
+    if (k==='up')    return c.up.isDown    || d.up;
+    if (k==='down')  return c.down.isDown  || d.down;
+    if (k==='left')  return c.left.isDown  || d.left;
+    if (k==='right') return c.right.isDown || d.right;
     return false;
   }
 
@@ -2882,6 +3459,20 @@ class WorldMapScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+
+    // ── Hint HTML unique ──
+    const _cam  = this.cameras.main;
+    const _zoom = _cam.zoom;
+    const _sw   = this.scale.width;
+    const _sh   = this.scale.height;
+    let _hintShown = false;
+    const _tryHint = (nearFlag, wx, wy, label) => {
+      if (nearFlag && !_hintShown) {
+        _showWorldHint(wx, wy, label, _cam, _zoom, _sw, _sh);
+        _hintShown = true;
+      }
+    };
+
     const SPEED = 80, dt = Math.min(delta, 50), HIT = 5;
     let dx=0, dy=0;
     if (this._isDown('left'))  { dx=-1; this._facing='left'; }
@@ -2903,13 +3494,50 @@ class WorldMapScene extends Phaser.Scene {
 
     this._moving = dx!==0 || dy!==0;
 
+
+
+
+    // ── PNJ 73/127 ──
+    const distNpc = Phaser.Math.Distance.Between(this._px, this._py, this._npcX, this._npcY);
+    const nearNpc = distNpc < 40;
+    if (this._npcHint) this._npcHint.setVisible(false);
+    _tryHint(nearNpc, this._npcX, this._npcY - 8, "[ E ]  Parler");
+    if (nearNpc && this._actionJustPressed) {
+      _showDialog('👤 Mysterious Stranger:\n"Bienvenu beta-testeur !\nBonne exploration !"');
+    }
+
+    // ── Coffres : hints + interaction ──
+    for (const chest of (this._chests || [])) {
+      const dist = Phaser.Math.Distance.Between(this._px, this._py, chest.x, chest.y);
+      const near = dist < 36;
+      chest.hint.setVisible(false);
+      const opened = window.studentData && window.studentData.chestsOpened && window.studentData.chestsOpened[chest.id];
+      if (opened) { chest.hint.setVisible(false); if (chest.openSprite) chest.openSprite.setVisible(true); continue; }
+      _tryHint(near, chest.x, chest.y - 10, "[ E ]  Ouvrir le coffre");
+      if (near && this._actionJustPressed) {
+        _openChest(chest.id);
+      }
+    }
+
+    // ── Objectifs : hint + interaction ──
+    const distObj = Phaser.Math.Distance.Between(
+      this._px, this._py, this._objectivesX, this._objectivesY
+    );
+    const nearObj = distObj < 48;
+    if (this._objHint) this._objHint.setVisible(false);
+    _tryHint(nearObj, this._objectivesX, this._objectivesY - 8, "[ E ]  Objectifs");
+    if (nearObj && this._actionJustPressed) {
+      document.getElementById('objectives-panel').style.display = 'block';
+    }
+
     // ── Noticeboard : hint + interaction ──
     const distNB = Phaser.Math.Distance.Between(
       this._px, this._py,
       this._noticeboardX, this._noticeboardY
     );
     const nearBoard = distNB < 40;
-    if (this._nbHint) this._nbHint.setVisible(nearBoard);
+    if (this._nbHint) this._nbHint.setVisible(false);
+    _tryHint(nearBoard, this._noticeboardX, this._noticeboardY - 8, "[ E ]  Tableau d'affichage");
 
     if (nearBoard && this._actionJustPressed) {
       const panel = document.getElementById('noticeboard-panel');
@@ -2917,8 +3545,6 @@ class WorldMapScene extends Phaser.Scene {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
       }
     }
-    this._actionJustPressed = false;
-
     // Caméra suit le joueur
     this.cameras.main.centerOn(this._px, this._py);
     this._drawPlayer();
@@ -2949,10 +3575,18 @@ class WorldMapScene extends Phaser.Scene {
       }
       const sd   = this._slimeMoveDir || { dx:0, dy:0 };
       const sspd = 30 * delta/1000;
-      const mW   = this._MAP_W;
-      const mH   = this._MAP_H;
-      this._slimeX = Phaser.Math.Clamp(this._slimeX + sd.dx*sspd, 16, mW-16);
-      this._slimeY = Phaser.Math.Clamp(this._slimeY + sd.dy*sspd, 16, mH-16);
+      const SHR  = 5 * 16; // rayon patrouille: 5 tuiles
+      const sSpawnX = 73 * 16 + 8;
+      const sSpawnY = 103 * 16 + 8;
+      const nsx = this._slimeX + sd.dx*sspd;
+      const nsy = this._slimeY + sd.dy*sspd;
+      // Collision + zone bornée
+      if (!isSolidGrid(nsx-6, this._slimeY) && !isSolidGrid(nsx+6, this._slimeY)
+          && Math.abs(nsx - sSpawnX) < SHR)
+        this._slimeX = nsx;
+      if (!isSolidGrid(this._slimeX, nsy-6) && !isSolidGrid(this._slimeX, nsy+6)
+          && Math.abs(nsy - sSpawnY) < SHR)
+        this._slimeY = nsy;
       this._slimeShadow.clear();
       this._slimeShadow.fillStyle(0x000000, 0.25);
       this._slimeShadow.fillEllipse(this._slimeX, this._slimeY+10, 20, 7);
@@ -2961,13 +3595,14 @@ class WorldMapScene extends Phaser.Scene {
       this._slimeSprite.setDepth(this._slimeY+1);
       const distSlime = Phaser.Math.Distance.Between(this._px, this._py, this._slimeX, this._slimeY);
       const nearSlime = distSlime < 40;
-      this._slimeHint.setPosition(this._slimeX, this._slimeY-32);
-      this._slimeHint.setDepth(this._slimeY+2);
-      this._slimeHint.setVisible(nearSlime);
+      this._slimeHint.setVisible(false);
+      _tryHint(nearSlime, this._slimeX, this._slimeY - 20, "[ E ]  Interagir");
       if (nearSlime && this._actionJustPressed) {
         this._startSlimeSession();
       }
     }
+    if (!_hintShown) _hideWorldHint();
+    this._actionJustPressed = false;
 
     // ── Publier position dans Firebase toutes les 100ms ──
     if (this._myId && this._fbSet) {
@@ -3033,7 +3668,7 @@ class WorldMapScene extends Phaser.Scene {
       btn.textContent = 'Close';
       btn.disabled = false;
       btn.style.display = 'block';
-      btn.onclick = () => { p.style.display='none'; btn.textContent='Submit ⚔'; };
+      btn.onclick = () => { p.style.display='none'; btn.textContent='Submit ⚔'; if (window._phaserKeyboardEnable) window._phaserKeyboardEnable(); };
       return;
     }
 
@@ -3062,6 +3697,7 @@ class WorldMapScene extends Phaser.Scene {
     const q = s.questions[s.currentQ];
     const p = document.getElementById('quiz-panel');
     p.style.display = 'block';
+    if (window._phaserKeyboardDisable) window._phaserKeyboardDisable();
     document.getElementById('quiz-hearts').textContent =
       '❤'.repeat(s.lives) + '🖤'.repeat(SESSION_CONFIG.lives - s.lives);
     document.getElementById('quiz-progress').textContent =
@@ -3146,14 +3782,82 @@ class WorldMapScene extends Phaser.Scene {
       await window._fbUpdate(window._fbRef(window._fbDb, 'students/' + myId), updates);
     }
     document.getElementById('quiz-panel').style.display = 'none';
+    if (window._phaserKeyboardEnable) window._phaserKeyboardEnable();
     const lp = document.getElementById('lootbox-panel');
-    document.getElementById('lootbox-content').innerHTML =
-      '<div class="loot-item loot-' + loot.rarity + '" style="color:' + RARITY_COLORS[loot.rarity] + '">' +
-      loot.label + ' <span style="opacity:0.6;font-size:9px">[' + loot.rarity.toUpperCase() + ']</span></div>' +
-      '<div style="margin-top:10px;font-size:10px;color:#88aa66">Session ' + window.studentData.sessionCount + ' complete!<br>Streak 🔥' + s.streak + '</div>';
-    lp.style.display = 'block';
-    document.getElementById('lootbox-close').onclick = () => {
+    lp.style.display = 'flex';
+
+    // Chest — spritesheet Animation_Chest_Gold_3.png (4 frames 30x38px)
+    const BASE_URL  = BASE;
+    const FRAME_W   = 66;
+    const FRAME_H   = 105;
+    const SCALE_D   = window.innerWidth < 600 ? 3 : 4;
+    const chestImg  = document.getElementById('lootbox-chest-img');
+    chestImg.src    = BASE_URL + 'Animation_Chest_Gold_3.png';
+    chestImg.style.left = '0px';  // frame 0 = coffre fermé
+
+    const glow = document.getElementById('lootbox-glow');
+    const GLOW_COLORS = {
+      common:    'radial-gradient(ellipse at center, rgba(180,180,180,0.4) 0%, transparent 65%)',
+      rare:      'radial-gradient(ellipse at center, rgba(74,158,255,0.55) 0%, transparent 65%)',
+      epic:      'radial-gradient(ellipse at center, rgba(168,85,247,0.6) 0%, transparent 65%)',
+      legendary: 'radial-gradient(ellipse at center, rgba(245,158,11,0.7) 0%, transparent 65%)',
+    };
+
+    const tapHint   = document.getElementById('lootbox-tap-hint');
+    const rewardDiv = document.getElementById('lootbox-reward');
+    const closeBtn  = document.getElementById('lootbox-close');
+    tapHint.style.display   = 'block';
+    rewardDiv.style.display = 'none';
+    closeBtn.style.display  = 'none';
+    glow.style.opacity      = '0';
+    glow.style.background   = '';
+
+    const chestWrap = document.getElementById('lootbox-chest-wrap');
+    // Mettre à jour la taille du wrap selon l'écran
+    chestWrap.style.width  = (FRAME_W * SCALE_D) + 'px';
+    chestWrap.style.height = (FRAME_H * SCALE_D) + 'px';
+    chestImg.style.width   = (FRAME_W * 4 * SCALE_D) + 'px';
+    chestImg.style.height  = (FRAME_H * SCALE_D) + 'px';
+
+    const onChestClick = () => {
+      chestWrap.removeEventListener('click', onChestClick);
+      tapHint.style.display = 'none';
+
+      // Lueur dès le début
+      glow.style.background = GLOW_COLORS[loot.rarity] || GLOW_COLORS.common;
+      glow.style.opacity    = '0.6';
+
+      // Animation frame par frame : 0→1→2→3, 200ms entre chaque
+      const frameDelay = 220;
+      [1, 2, 3].forEach((frame, i) => {
+        setTimeout(() => {
+          chestImg.style.left = '-' + (frame * FRAME_W * SCALE_D) + 'px';
+          // Intensifier la lueur sur la frame finale
+          if (frame === 3) {
+            glow.style.opacity = '1';
+            glow.style.transition = 'opacity 0.3s ease';
+          }
+        }, frameDelay * (i + 1));
+      });
+
+      // Récompense après toute l'animation
+      setTimeout(() => {
+        const itemEl = document.getElementById('lootbox-reward-item');
+        itemEl.textContent       = loot.label;
+        itemEl.style.color       = RARITY_COLORS[loot.rarity];
+        itemEl.style.borderColor = RARITY_COLORS[loot.rarity];
+        document.getElementById('lootbox-reward-sub').innerHTML =
+          '[' + loot.rarity.toUpperCase() + ']<br>' +
+          'Session ' + window.studentData.sessionCount + ' complete!  🔥 Streak ' + s.streak;
+        rewardDiv.style.display = 'flex';
+        closeBtn.style.display  = 'block';
+      }, frameDelay * 3 + 400);
+    };
+    chestWrap.addEventListener('click', onChestClick);
+
+    closeBtn.onclick = () => {
       lp.style.display = 'none';
+      if (window._phaserKeyboardEnable) window._phaserKeyboardEnable();
       this._slimeInSession = false;
       this._slimeMoveTime  = 0;
       _session = null;
